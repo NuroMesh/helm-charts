@@ -16,7 +16,7 @@ For more information, please see the full license text at:
 https://creativecommons.org/licenses/by-nc/4.0/legalcode
 
 If you wish to use this material for commercial purposes, please contact:  
-legal@nurol.ai
+info@nurol.ai
 
 ---
 
