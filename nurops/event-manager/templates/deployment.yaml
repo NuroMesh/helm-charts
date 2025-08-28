@@ -58,17 +58,6 @@ spec:
           {{- end }}
         {{- end }}
         {{- end }}
-        args:
-        - "--bind"
-        - "0.0.0.0:{{ .Values.eventManager.service.targetPort }}"
-        {{- if .Values.eventManager.persistence.enabled }}
-        - "--db-path"
-        - "{{ .Values.eventManager.persistence.mountPath }}/my-events.db"
-        {{- end }}
-        {{- if .Values.eventManager.config }}
-        - "--config"
-        - "/etc/event-manager/config.yaml"
-        {{- end }}
         ports:
         - containerPort: {{ .Values.eventManager.service.targetPort }}
           protocol: TCP
@@ -76,21 +65,18 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
         {{- end }}
-        {{- if .Values.eventManager.config }}
-        volumeMounts:
-        - name: config
-          mountPath: /etc/event-manager
-          readOnly: true
+        {{- if .Values.eventManager.livenessProbe }}
+        livenessProbe:
+          {{- toYaml .Values.eventManager.livenessProbe | nindent 10 }}
+        {{- end }}
+        {{- if .Values.eventManager.readinessProbe }}
+        readinessProbe:
+          {{- toYaml .Values.eventManager.readinessProbe | nindent 10 }}
         {{- end }}
         {{- if .Values.eventManager.persistence.enabled }}
-        {{- if .Values.eventManager.config }}
-        - name: data
-          mountPath: {{ .Values.eventManager.persistence.mountPath }}
-        {{- else }}
         volumeMounts:
         - name: data
           mountPath: {{ .Values.eventManager.persistence.mountPath }}
-        {{- end }}
         {{- end }}
         resources:
           {{- toYaml .Values.eventManager.deployment.resources | nindent 10 }}
@@ -106,22 +92,10 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.eventManager.config }}
-      volumes:
-      - name: config
-        configMap:
-          name: {{ include "event-manager.fullname" . }}-config
-      {{- end }}
       {{- if .Values.eventManager.persistence.enabled }}
-      {{- if .Values.eventManager.config }}
-      - name: data
-        persistentVolumeClaim:
-          claimName: {{ include "event-manager.fullname" . }}-data
-      {{- else }}
       volumes:
       - name: data
         persistentVolumeClaim:
           claimName: {{ include "event-manager.fullname" . }}-data
-      {{- end }}
       {{- end }}
 {{- end }}

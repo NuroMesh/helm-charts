@@ -20,8 +20,8 @@ eventManager:
     replicas: 1
     resources:
       limits:
-        cpu: 200m
-        memory: 256Mi
+        cpu: 500m
+        memory: 512Mi
       requests:
         cpu: 100m
         memory: 128Mi
@@ -35,30 +35,49 @@ eventManager:
     pullSecrets: []
     # - name: regcred
   
-  # Environment variables
+  # Environment variables - matching the container implementation
   env:
     # HTTP server configuration
     - name: HTTP_PORT
-      value: "8080"
+      value: "80"
+    - name: HOST
+      value: "0.0.0.0"
     # Database configuration
     - name: DATABASE_PATH
-      value: "/data/my-events.db"
+      value: "/data/event_history.db"
     # Data retention configuration
     - name: HISTORY_RETENTION_DAYS
-      value: "60"
-    # Additional environment variables can be added here
-    # - name: LOG_LEVEL
-    #   value: "info"
-    # - name: WEBHOOK_TIMEOUT
-    #   value: "30s"
-    # - name: MAX_RETRIES
-    #   value: "3"
+      value: "30"
+    - name: CLEANUP_INTERVAL_SECONDS
+      value: "3600"
+    # CORS configuration
+    - name: CORS_ORIGINS
+      value: "*"
   
   # Service configuration
   service:
     type: ClusterIP
-    port: 8080
-    targetPort: 8080
+    port: 80
+    targetPort: 80
+  
+  # Health check configuration
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 80
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 3
+
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: 80
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
   
   # Service account configuration
   serviceAccount:
@@ -70,10 +89,20 @@ eventManager:
   podAnnotations: {}
   
   # Pod security context
-  podSecurityContext: {}
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
   
   # Container security context
-  securityContext: {}
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
   
   # Node selector
   nodeSelector: {}
@@ -87,29 +116,12 @@ eventManager:
   # Persistence configuration for SQLite3 database
   persistence:
     enabled: true
-    storageClass: "longhorn"
-    size: 10Gi
+    storageClass: "local-path"
+    size: 1Gi
     accessModes:
       - ReadWriteOnce
-    mountPath: /var/lib/event-manager
+    mountPath: /data
     annotations: {}
-    # Example annotations for backup
-    # backup.velero.io/backup-volumes: "data"
-    # velero.io/exclude-from-backup: "false"
-  
-  # Configuration
-  config:
-    # Example configuration
-    # log_level: "info"
-    # webhook_timeout: "30s"
-    # max_retries: 3
-    # database:
-    #   path: "/var/lib/event-manager/events.db"
-    #   max_connections: 10
-    # event_rules:
-    #   - name: "high_cpu"
-    #     threshold: 80
-    #     duration: "5m"
   
   # Network Policy
   networkPolicy:
@@ -121,14 +133,14 @@ eventManager:
             name: monitoring
         ports:
           - protocol: TCP
-            port: 8080
+            port: 80
       # Allow traffic from kube-system namespace
       - namespaceSelector:
           matchLabels:
             name: kube-system
         ports:
           - protocol: TCP
-            port: 8080
+            port: 80
     egress:
       # Allow DNS queries
       - ports:
@@ -148,28 +160,6 @@ eventManager:
     maxReplicas: 10
     targetCPUUtilizationPercentage: 80
     targetMemoryUtilizationPercentage: 80
-    # Custom metrics (optional)
-    customMetrics: []
-    # - name: http_requests_per_second
-    #   apiVersion: v2
-    #   kind: Service
-    #   objectName: event-manager
-    #   targetType: AverageValue
-    #   averageValue: 100
-    # Behavior configuration (optional)
-    behavior: {}
-    # scaleUp:
-    #   stabilizationWindowSeconds: 60
-    #   policies:
-    #   - type: Percent
-    #     value: 100
-    #     periodSeconds: 15
-    # scaleDown:
-    #   stabilizationWindowSeconds: 300
-    #   policies:
-    #   - type: Percent
-    #     value: 10
-    #     periodSeconds: 60
 
 # Override the name of the chart
 nameOverride: ""

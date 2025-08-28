@@ -22,8 +22,8 @@ spec:
         replicas: 1
         resources:
           limits:
-            cpu: 200m
-            memory: 256Mi
+            cpu: 500m
+            memory: 512Mi
           requests:
             cpu: 100m
             memory: 128Mi
@@ -31,36 +31,48 @@ spec:
         repository: nurops/event-manager
         tag: "latest"
         pullPolicy: IfNotPresent
-      # Environment variables
+      # Environment variables - matching container implementation
       env:
         - name: HTTP_PORT
-          value: "8080"
+          value: "80"
+        - name: HOST
+          value: "0.0.0.0"
         - name: DATABASE_PATH
-          value: "/var/lib/event-manager/my-events.db"
+          value: "/data/event_history.db"
         - name: HISTORY_RETENTION_DAYS
-          value: "60"
+          value: "30"
+        - name: CLEANUP_INTERVAL_SECONDS
+          value: "3600"
+        - name: CORS_ORIGINS
+          value: "*"
       service:
         type: ClusterIP
-        port: 8080
-        targetPort: 8080
+        port: 80
+        targetPort: 80
       persistence:
         enabled: true
-        storageClass: "longhorn"
-        size: 10Gi
+        storageClass: "local-path"
+        size: 1Gi
         accessModes:
           - ReadWriteOnce
-        mountPath: "/var/lib/event-manager"
+        mountPath: "/data"
       serviceAccount:
         create: true
-        annotations:
-          eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/event-manager-role
       podAnnotations:
         prometheus.io/scrape: "true"
-        prometheus.io/port: "8080"
-        prometheus.io/path: "/metrics"
+        prometheus.io/port: "80"
+        prometheus.io/path: "/health"
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+      podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
         fsGroup: 1000
       nodeSelector:
         node-role.kubernetes.io/worker: "true"
@@ -104,27 +116,29 @@ spec:
         repository: nurops/event-manager
         tag: "v1.0.0"
       
-      # Environment variables for production
+      # Environment variables for production - matching container implementation
       env:
         - name: HTTP_PORT
-          value: "8080"
+          value: "80"
+        - name: HOST
+          value: "0.0.0.0"
         - name: DATABASE_PATH
-          value: "/var/lib/event-manager/production-events.db"
+          value: "/data/event_history.db"
         - name: HISTORY_RETENTION_DAYS
           value: "90"
-        - name: LOG_LEVEL
-          value: "info"
-        - name: WEBHOOK_TIMEOUT
-          value: "30s"
+        - name: CLEANUP_INTERVAL_SECONDS
+          value: "3600"
+        - name: CORS_ORIGINS
+          value: "*"
       
       # Configure persistence for production
       persistence:
         enabled: true
-        storageClass: "longhorn"
-        size: 20Gi
+        storageClass: "local-path"
+        size: 5Gi
         accessModes:
           - ReadWriteOnce
-        mountPath: "/var/lib/event-manager"
+        mountPath: "/data"
         annotations:
           backup.velero.io/backup-volumes: "data"
           velero.io/exclude-from-backup: "false"
@@ -132,6 +146,8 @@ spec:
       # Configure for production
       service:
         type: LoadBalancer
+        port: 80
+        targetPort: 80
         annotations:
           service.beta.kubernetes.io/aws-load-balancer-type: nlb
           service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
@@ -140,8 +156,8 @@ spec:
       deployment:
         resources:
           limits:
-            cpu: 500m
-            memory: 512Mi
+            cpu: 1000m
+            memory: 1Gi
           requests:
             cpu: 250m
             memory: 256Mi
@@ -150,7 +166,7 @@ spec:
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
-        fsGroup: 1000
+        allowPrivilegeEscalation: false
         capabilities:
           drop:
             - ALL
@@ -160,6 +176,7 @@ spec:
         fsGroup: 1000
         runAsNonRoot: true
         runAsUser: 1000
+        runAsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
       
@@ -167,8 +184,8 @@ spec:
       podAnnotations:
         vpc.amazonaws.com/pod-eni: "true"
         prometheus.io/scrape: "true"
-        prometheus.io/port: "8080"
-        prometheus.io/path: "/metrics"
+        prometheus.io/port: "80"
+        prometheus.io/path: "/health"
       
       # Node placement
       nodeSelector:
