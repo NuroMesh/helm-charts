@@ -1,0 +1,66 @@
+{{/*
+Copyright (c) 2025 Nurol, Inc. (nurol.ai)
+This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
+For commercial use, please contact info@nurol.ai
+*/}}
+
+{{- if .Values.eventManager.enabled }}
+{{- if .Values.eventManager.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "event-manager.fullname" . }}
+  {{- if .Values.global.namespaceOverride }}
+  namespace: {{ .Values.global.namespaceOverride }}
+  {{- end }}
+  labels:
+    {{- include "event-manager.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "event-manager.fullname" . }}
+  minReplicas: {{ .Values.eventManager.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.eventManager.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.eventManager.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.eventManager.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.eventManager.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.eventManager.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.eventManager.autoscaling.customMetrics }}
+    {{- range .Values.eventManager.autoscaling.customMetrics }}
+    - type: Object
+      object:
+        metric:
+          name: {{ .name }}
+        describedObject:
+          apiVersion: {{ .apiVersion }}
+          kind: {{ .kind }}
+          name: {{ .objectName }}
+        target:
+          type: {{ .targetType }}
+          {{- if eq .targetType "Value" }}
+          value: {{ .value }}
+          {{- else if eq .targetType "AverageValue" }}
+          averageValue: {{ .averageValue }}
+          {{- end }}
+    {{- end }}
+    {{- end }}
+  {{- if .Values.eventManager.autoscaling.behavior }}
+  behavior:
+    {{- toYaml .Values.eventManager.autoscaling.behavior | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

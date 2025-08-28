@@ -1,0 +1,21 @@
+{{/*
+Copyright (c) 2025 Nurol, Inc. (nurol.ai)
+This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
+For commercial use, please contact info@nurol.ai
+*/}}
+
+{{- if .Values.eventManager.enabled }}
+{{- if .Values.eventManager.config }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "event-manager.fullname" . }}-config
+  {{- if .Values.global.namespaceOverride }}
+  namespace: {{ .Values.global.namespaceOverride }}
+  {{- end }}
+  labels:
+    {{- include "event-manager.labels" . | nindent 4 }}
+data:
+  {{- toYaml .Values.eventManager.config | nindent 2 }}
+{{- end }}
+{{- end }}

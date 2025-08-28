@@ -1,0 +1,178 @@
+# Copyright (c) 2025 Nurol, Inc. (nurol.ai)
+# This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
+# For commercial use, please contact info@nurol.ai
+
+# Default values for event-manager
+# This is a YAML-formatted file.
+
+# Global configuration
+global:
+  # Override the namespace where resources are deployed
+  # If not set, will use the release namespace
+  namespaceOverride: ""
+
+# Event Manager configuration
+eventManager:
+  enabled: true
+  
+  # Deployment configuration
+  deployment:
+    replicas: 1
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+  
+  # Container image configuration
+  image:
+    repository: nurops/event-manager
+    tag: "latest"
+    pullPolicy: IfNotPresent
+    # Optional: specify image pull secrets
+    pullSecrets: []
+    # - name: regcred
+  
+  # Environment variables
+  env:
+    # HTTP server configuration
+    - name: HTTP_PORT
+      value: "8080"
+    # Database configuration
+    - name: DATABASE_PATH
+      value: "/data/my-events.db"
+    # Data retention configuration
+    - name: HISTORY_RETENTION_DAYS
+      value: "60"
+    # Additional environment variables can be added here
+    # - name: LOG_LEVEL
+    #   value: "info"
+    # - name: WEBHOOK_TIMEOUT
+    #   value: "30s"
+    # - name: MAX_RETRIES
+    #   value: "3"
+  
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 8080
+    targetPort: 8080
+  
+  # Service account configuration
+  serviceAccount:
+    create: true
+    name: ""
+    annotations: {}
+  
+  # Pod annotations
+  podAnnotations: {}
+  
+  # Pod security context
+  podSecurityContext: {}
+  
+  # Container security context
+  securityContext: {}
+  
+  # Node selector
+  nodeSelector: {}
+  
+  # Tolerations
+  tolerations: []
+  
+  # Affinity
+  affinity: {}
+  
+  # Persistence configuration for SQLite3 database
+  persistence:
+    enabled: true
+    storageClass: "longhorn"
+    size: 10Gi
+    accessModes:
+      - ReadWriteOnce
+    mountPath: /var/lib/event-manager
+    annotations: {}
+    # Example annotations for backup
+    # backup.velero.io/backup-volumes: "data"
+    # velero.io/exclude-from-backup: "false"
+  
+  # Configuration
+  config:
+    # Example configuration
+    # log_level: "info"
+    # webhook_timeout: "30s"
+    # max_retries: 3
+    # database:
+    #   path: "/var/lib/event-manager/events.db"
+    #   max_connections: 10
+    # event_rules:
+    #   - name: "high_cpu"
+    #     threshold: 80
+    #     duration: "5m"
+  
+  # Network Policy
+  networkPolicy:
+    enabled: false
+    ingress:
+      # Allow traffic from monitoring namespace
+      - namespaceSelector:
+          matchLabels:
+            name: monitoring
+        ports:
+          - protocol: TCP
+            port: 8080
+      # Allow traffic from kube-system namespace
+      - namespaceSelector:
+          matchLabels:
+            name: kube-system
+        ports:
+          - protocol: TCP
+            port: 8080
+    egress:
+      # Allow DNS queries
+      - ports:
+          - protocol: UDP
+            port: 53
+      # Allow HTTP/HTTPS traffic
+      - ports:
+          - protocol: TCP
+            port: 80
+          - protocol: TCP
+            port: 443
+  
+  # Autoscaling configuration
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+    # Custom metrics (optional)
+    customMetrics: []
+    # - name: http_requests_per_second
+    #   apiVersion: v2
+    #   kind: Service
+    #   objectName: event-manager
+    #   targetType: AverageValue
+    #   averageValue: 100
+    # Behavior configuration (optional)
+    behavior: {}
+    # scaleUp:
+    #   stabilizationWindowSeconds: 60
+    #   policies:
+    #   - type: Percent
+    #     value: 100
+    #     periodSeconds: 15
+    # scaleDown:
+    #   stabilizationWindowSeconds: 300
+    #   policies:
+    #   - type: Percent
+    #     value: 10
+    #     periodSeconds: 60
+
+# Override the name of the chart
+nameOverride: ""
+
+# Override the full name of the chart
+fullnameOverride: ""

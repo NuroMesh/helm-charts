@@ -1,3 +1,5 @@
+This repo is experimental, not ready for production use.
+
 # helm-charts
 Helm Charts for Nurol applications running in k3s / k8s
 

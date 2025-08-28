@@ -1,0 +1,127 @@
+{{/*
+Copyright (c) 2025 Nurol, Inc. (nurol.ai)
+This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
+For commercial use, please contact info@nurol.ai
+*/}}
+
+{{- if .Values.eventManager.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "event-manager.fullname" . }}
+  {{- if .Values.global.namespaceOverride }}
+  namespace: {{ .Values.global.namespaceOverride }}
+  {{- end }}
+  labels:
+    app: {{ include "event-manager.name" . }}
+    {{- include "event-manager.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.eventManager.deployment.replicas }}
+  selector:
+    matchLabels:
+      app: {{ include "event-manager.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "event-manager.name" . }}
+        {{- include "event-manager.labels" . | nindent 8 }}
+      {{- with .Values.eventManager.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.eventManager.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.eventManager.image.pullSecrets }}
+      imagePullSecrets:
+      {{- range .Values.eventManager.image.pullSecrets }}
+      - name: {{ .name }}
+      {{- end }}
+      {{- end }}
+      serviceAccountName: {{ include "event-manager.serviceAccountName" . }}
+      containers:
+      - name: {{ include "event-manager.name" . }}
+        image: {{ .Values.eventManager.image.repository }}:{{ .Values.eventManager.image.tag }}
+        imagePullPolicy: {{ .Values.eventManager.image.pullPolicy }}
+        {{- if .Values.eventManager.env }}
+        env:
+        {{- range .Values.eventManager.env }}
+        - name: {{ .name }}
+          {{- if .value }}
+          value: {{ .value | quote }}
+          {{- end }}
+          {{- if .valueFrom }}
+          valueFrom:
+            {{- toYaml .valueFrom | nindent 12 }}
+          {{- end }}
+        {{- end }}
+        {{- end }}
+        args:
+        - "--bind"
+        - "0.0.0.0:{{ .Values.eventManager.service.targetPort }}"
+        {{- if .Values.eventManager.persistence.enabled }}
+        - "--db-path"
+        - "{{ .Values.eventManager.persistence.mountPath }}/my-events.db"
+        {{- end }}
+        {{- if .Values.eventManager.config }}
+        - "--config"
+        - "/etc/event-manager/config.yaml"
+        {{- end }}
+        ports:
+        - containerPort: {{ .Values.eventManager.service.targetPort }}
+          protocol: TCP
+        {{- with .Values.eventManager.securityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- if .Values.eventManager.config }}
+        volumeMounts:
+        - name: config
+          mountPath: /etc/event-manager
+          readOnly: true
+        {{- end }}
+        {{- if .Values.eventManager.persistence.enabled }}
+        {{- if .Values.eventManager.config }}
+        - name: data
+          mountPath: {{ .Values.eventManager.persistence.mountPath }}
+        {{- else }}
+        volumeMounts:
+        - name: data
+          mountPath: {{ .Values.eventManager.persistence.mountPath }}
+        {{- end }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.eventManager.deployment.resources | nindent 10 }}
+      {{- with .Values.eventManager.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.eventManager.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.eventManager.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.eventManager.config }}
+      volumes:
+      - name: config
+        configMap:
+          name: {{ include "event-manager.fullname" . }}-config
+      {{- end }}
+      {{- if .Values.eventManager.persistence.enabled }}
+      {{- if .Values.eventManager.config }}
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ include "event-manager.fullname" . }}-data
+      {{- else }}
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ include "event-manager.fullname" . }}-data
+      {{- end }}
+      {{- end }}
+{{- end }}

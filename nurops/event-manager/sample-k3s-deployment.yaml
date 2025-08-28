@@ -1,0 +1,206 @@
+# Copyright (c) 2025 Nurol, Inc. (nurol.ai)
+# This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
+# For commercial use, please contact info@nurol.ai
+
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: event-manager
+  namespace: kube-system
+  annotations:
+    helm.cattle.io/chart-url: https://nurol-ai.github.io/helm-charts/event-manager-0.1.0.tgz
+    helm.cattle.io/chart-version: "0.1.0"
+spec:
+  repo: https://nurol-ai.github.io/helm-charts
+  chart: event-manager
+  version: "0.1.0"
+  targetNamespace: monitoring
+  valuesContent: |-
+    eventManager:
+      enabled: true
+      deployment:
+        replicas: 1
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+      image:
+        repository: nurops/event-manager
+        tag: "latest"
+        pullPolicy: IfNotPresent
+      # Environment variables
+      env:
+        - name: HTTP_PORT
+          value: "8080"
+        - name: DATABASE_PATH
+          value: "/var/lib/event-manager/my-events.db"
+        - name: HISTORY_RETENTION_DAYS
+          value: "60"
+      service:
+        type: ClusterIP
+        port: 8080
+        targetPort: 8080
+      persistence:
+        enabled: true
+        storageClass: "longhorn"
+        size: 10Gi
+        accessModes:
+          - ReadWriteOnce
+        mountPath: "/var/lib/event-manager"
+      serviceAccount:
+        create: true
+        annotations:
+          eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/event-manager-role
+      podAnnotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      nodeSelector:
+        node-role.kubernetes.io/worker: "true"
+      tolerations:
+        - key: "node-role.kubernetes.io/master"
+          operator: "Exists"
+          effect: "NoSchedule"
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - event-manager
+              topologyKey: kubernetes.io/hostname
+---
+# Alternative: Using HelmChartConfig for more advanced configuration
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: event-manager-config
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    # Global configuration
+    global:
+      namespaceOverride: "monitoring"
+    
+    # Event Manager specific overrides
+    eventManager:
+      # Enable high availability mode
+      deployment:
+        replicas: 3
+      
+      # Use specific image version
+      image:
+        repository: nurops/event-manager
+        tag: "v1.0.0"
+      
+      # Environment variables for production
+      env:
+        - name: HTTP_PORT
+          value: "8080"
+        - name: DATABASE_PATH
+          value: "/var/lib/event-manager/production-events.db"
+        - name: HISTORY_RETENTION_DAYS
+          value: "90"
+        - name: LOG_LEVEL
+          value: "info"
+        - name: WEBHOOK_TIMEOUT
+          value: "30s"
+      
+      # Configure persistence for production
+      persistence:
+        enabled: true
+        storageClass: "longhorn"
+        size: 20Gi
+        accessModes:
+          - ReadWriteOnce
+        mountPath: "/var/lib/event-manager"
+        annotations:
+          backup.velero.io/backup-volumes: "data"
+          velero.io/exclude-from-backup: "false"
+      
+      # Configure for production
+      service:
+        type: LoadBalancer
+        annotations:
+          service.beta.kubernetes.io/aws-load-balancer-type: nlb
+          service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+      
+      # Resource limits for production
+      deployment:
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 250m
+            memory: 256Mi
+      
+      # Security hardening
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+        capabilities:
+          drop:
+            - ALL
+      
+      # Pod security context
+      podSecurityContext:
+        fsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      
+      # Network policies
+      podAnnotations:
+        vpc.amazonaws.com/pod-eni: "true"
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+      
+      # Node placement
+      nodeSelector:
+        node-role.kubernetes.io/worker: "true"
+        kubernetes.io/os: linux
+      
+      # Tolerations for dedicated nodes
+      tolerations:
+        - key: "dedicated"
+          operator: "Equal"
+          value: "event-manager"
+          effect: "NoSchedule"
+      
+      # Pod affinity for high availability
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - event-manager
+            topologyKey: kubernetes.io/hostname
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - event-manager
+              topologyKey: topology.kubernetes.io/zone

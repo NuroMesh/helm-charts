@@ -1,0 +1,181 @@
+# Copyright (c) 2025 Nurol, Inc. (nurol.ai)
+# This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
+# For commercial use, please contact info@nurol.ai
+
+name: Publish Helm Charts
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'nurops/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'nurops/**'
+  release:
+    types: [published]
+
+jobs:
+  lint-and-test:
+    runs-on: self-hosted
+    env:
+      HELM_HOME: /tmp/helm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check Helm Installation
+        run: |
+          echo "Running on self-hosted runner: $(uname -a)"
+          echo "Current directory: $(pwd)"
+          echo "Available tools:"
+          which git || echo "git not found"
+          which curl || echo "curl not found"
+          
+          if ! command -v helm &> /dev/null; then
+            echo "Helm not found, installing..."
+            curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          else
+            echo "Helm version: $(helm version --short)"
+          fi
+
+      - name: Lint Charts
+        run: |
+          for chart in nurops/*/; do
+            if [ -f "$chart/Chart.yaml" ]; then
+              echo "Linting $chart"
+              helm lint "$chart"
+            fi
+          done
+
+      - name: Test Charts
+        run: |
+          for chart in nurops/*/; do
+            if [ -f "$chart/Chart.yaml" ]; then
+              echo "Testing $chart"
+              helm template test "$chart" > /dev/null
+            fi
+          done
+
+  publish:
+    needs: lint-and-test
+    runs-on: self-hosted
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    env:
+      HELM_HOME: /tmp/helm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout Pages
+        uses: actions/checkout@v4
+        with:
+          repository: Nurol-AI/nurol-ai.github.io
+          path: pages
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check Helm Installation
+        run: |
+          echo "Running on self-hosted runner: $(uname -a)"
+          echo "Current directory: $(pwd)"
+          echo "Available tools:"
+          which git || echo "git not found"
+          which curl || echo "curl not found"
+          
+          if ! command -v helm &> /dev/null; then
+            echo "Helm not found, installing..."
+            curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          else
+            echo "Helm version: $(helm version --short)"
+          fi
+
+      - name: Package Charts
+        run: |
+          mkdir -p pages/charts
+          
+          for chart in nurops/*/; do
+            if [ -f "$chart/Chart.yaml" ]; then
+              echo "Packaging $chart"
+              helm package "$chart" --destination pages/charts
+            fi
+          done
+
+      - name: Update Index
+        run: |
+          if [ -f "pages/charts/index.yaml" ]; then
+            helm repo index pages/charts --url https://nurol-ai.github.io/charts --merge pages/charts/index.yaml
+          else
+            helm repo index pages/charts --url https://nurol-ai.github.io/charts
+          fi
+
+      - name: Create Repository README
+        run: |
+          cat > pages/README.md << 'EOF'
+          # Copyright (c) 2025 Nurol, Inc. (nurol.ai)
+          # This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
+          # For commercial use, please contact info@nurol.ai
+          
+          # Nurol AI Helm Charts
+          
+          This repository contains Helm charts for Nurol AI applications.
+          
+          ## Available Charts
+          
+          - **event-manager**: Event Manager service for webhook management and event processing
+          
+          ## Usage
+          
+          ### Add the repository
+          ```bash
+          helm repo add nurol-ai https://nurol-ai.github.io
+          helm repo update
+          ```
+          
+          ### Install charts
+          ```bash
+          # Install event-manager
+          helm install event-manager nurol-ai/event-manager
+          
+          # Install with custom values
+          helm install event-manager nurol-ai/event-manager -f custom-values.yaml
+          ```
+          
+          ### List available charts
+          ```bash
+          helm search repo nurol-ai
+          ```
+          
+          ## Documentation
+          
+          For detailed documentation, see the individual chart directories in the [helm-charts repository](https://github.com/Nurol-AI/helm-charts).
+          
+          ## License
+          
+          This repository and its contents are licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
+          
+          For commercial use, please contact info@nurol.ai
+          EOF
+
+      - name: Deploy to GitHub Pages
+        run: |
+          echo "Deploying to GitHub Pages..."
+          echo "Repository contents prepared in ./pages directory"
+          echo "Manual deployment may be required for self-hosted runners"
+          
+          # Optional: Add your custom deployment logic here
+          # For example, using rsync, scp, or other deployment methods
+          # rsync -avz ./pages/ user@your-server:/path/to/github-pages/
+          
+          echo "Deployment completed"

@@ -1,0 +1,68 @@
+{{/*
+Copyright (c) 2025 Nurol, Inc. (nurol.ai)
+This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
+For commercial use, please contact info@nurol.ai
+*/}}
+
+{{- if .Values.eventManager.enabled }}
+{{- if .Values.eventManager.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "event-manager.fullname" . }}
+  {{- if .Values.global.namespaceOverride }}
+  namespace: {{ .Values.global.namespaceOverride }}
+  {{- end }}
+  labels:
+    {{- include "event-manager.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ include "event-manager.name" . }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    {{- range .Values.eventManager.networkPolicy.ingress }}
+    - from:
+      {{- if .namespaceSelector }}
+      - namespaceSelector:
+          {{- toYaml .namespaceSelector | nindent 10 }}
+      {{- end }}
+      {{- if .podSelector }}
+      - podSelector:
+          {{- toYaml .podSelector | nindent 10 }}
+      {{- end }}
+      {{- if .ipBlock }}
+      - ipBlock:
+          {{- toYaml .ipBlock | nindent 10 }}
+      {{- end }}
+      ports:
+      {{- range .ports }}
+      - protocol: {{ .protocol }}
+        port: {{ .port }}
+      {{- end }}
+    {{- end }}
+  egress:
+    {{- range .Values.eventManager.networkPolicy.egress }}
+    - to:
+      {{- if .namespaceSelector }}
+      - namespaceSelector:
+          {{- toYaml .namespaceSelector | nindent 8 }}
+      {{- end }}
+      {{- if .podSelector }}
+      - podSelector:
+          {{- toYaml .podSelector | nindent 8 }}
+      {{- end }}
+      {{- if .ipBlock }}
+      - ipBlock:
+          {{- toYaml .ipBlock | nindent 8 }}
+      {{- end }}
+      ports:
+      {{- range .ports }}
+      - protocol: {{ .protocol }}
+        port: {{ .port }}
+      {{- end }}
+    {{- end }}
+{{- end }}
+{{- end }}

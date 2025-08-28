@@ -1,0 +1,21 @@
+# Copyright (c) 2025 Nurol, Inc. (nurol.ai)
+# This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
+# For commercial use, please contact info@nurol.ai
+
+apiVersion: v2
+name: event-manager
+description: A Helm chart for Event Manager service that acts as a webhook bridge for event management
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - event
+  - proxy
+  - webhook
+  - monitoring
+maintainers:
+  - name: Nurol Team
+    email: info@nurol.ai
+home: https://nurol.ai
+sources:
+  - https://github.com/nurol-ai/helm-charts
