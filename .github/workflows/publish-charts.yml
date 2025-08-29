@@ -200,15 +200,11 @@ jobs:
           echo "Git diff --cached:"
           git diff --cached || echo "No staged changes"
 
-          # Check if there are any changes
-          if git diff --quiet && git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            # Add all changes
-            git add .
+          # Add all changes (including untracked files)
+          git add .
 
-            # Commit with descriptive message
-            git commit -m "Update Helm charts from helm-charts repository
+          # Commit with descriptive message
+          git commit -m "Update Helm charts from helm-charts repository
 
           - Updated chart packages
           - Updated repository index
@@ -216,9 +212,8 @@ jobs:
 
           Triggered by: ${{ github.event.head_commit.message }}"
 
-            # Push to main branch
-            git push origin main
-          fi
+          # Push to main branch
+          git push origin main
 
       - name: Verify Deployment
         run: |
