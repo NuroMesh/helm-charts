@@ -108,11 +108,8 @@ jobs:
             "github-actions[bot]@users.noreply.github.com"
 
       - name: Checkout Pages Repository
-        uses: actions/checkout@v4
-        with:
-          repository: Nurol-AI/nurol-ai.github.io
-          path: pages
-          token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git clone git@github.com:Nurol-AI/nurol-ai.github.io.git pages
 
       - name: Package Charts
         run: |
@@ -212,7 +209,8 @@ jobs:
 
           Triggered by: ${{ github.event.head_commit.message }}"
 
-          # Push to main branch
+          # Push to main branch using SSH
+          git remote set-url origin git@github.com:Nurol-AI/nurol-ai.github.io.git
           git push origin main
 
       - name: Verify Deployment
