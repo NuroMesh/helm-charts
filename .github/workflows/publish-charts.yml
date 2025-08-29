@@ -152,16 +152,32 @@ jobs:
 
           echo "Packaged charts:"
           ls -la pages/charts/
+          echo "Chart package details:"
+          for pkg in pages/charts/*.tgz; do
+            if [ -f "$pkg" ]; then
+              echo "Package: $pkg"
+              ls -la "$pkg"
+            fi
+          done
 
       - name: Update Index
         run: |
+          echo "Current directory: $(pwd)"
+          echo "Checking for existing index.yaml:"
+          ls -la pages/charts/ || echo "charts directory not found"
+          
           if [ -f "pages/charts/index.yaml" ]; then
+            echo "Merging with existing index.yaml"
             helm repo index pages/charts \
               --url https://nurol-ai.github.io/charts \
               --merge pages/charts/index.yaml
           else
+            echo "Creating new index.yaml"
             helm repo index pages/charts --url https://nurol-ai.github.io/charts
           fi
+          
+          echo "Generated index.yaml:"
+          ls -la pages/charts/index.yaml || echo "index.yaml not found"
 
       - name: Create Repository README
         run: |
@@ -171,6 +187,18 @@ jobs:
       - name: Commit and Push to Pages Repository
         run: |
           cd pages
+          
+          echo "Current directory: $(pwd)"
+          echo "Repository status:"
+          git status
+          echo "Files in pages directory:"
+          ls -la
+          echo "Files in charts directory:"
+          ls -la charts/ || echo "charts directory not found"
+          echo "Git diff:"
+          git diff || echo "No diff"
+          echo "Git diff --cached:"
+          git diff --cached || echo "No staged changes"
 
           # Check if there are any changes
           if git diff --quiet && git diff --cached --quiet; then
