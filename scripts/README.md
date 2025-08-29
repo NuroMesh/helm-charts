@@ -1,9 +1,4 @@
 # Helm Chart Scripts
-
-> **Copyright (c) 2025 Nurol, Inc. (nurol.ai)**  
-> This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).  
-> For commercial use, please contact info@nurol.ai
-
 This directory contains centralized scripts for managing Helm charts in the Nurol AI repository.
 
 ## Available Scripts
@@ -129,4 +124,6 @@ When adding new scripts:
 
 All scripts are licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
 
-For commercial use, please contact info@nurol.ai
+For commercial use, please contact info@nurol.ai  
+
+**Copyright (c) 2025 Nurol, Inc. (nurol.ai)**
