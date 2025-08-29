@@ -1,8 +1,4 @@
-> **Copyright (c) 2025 Nurol, Inc. (nurol.ai)**  
-> This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).  
-> For commercial use, please contact info@nurol.ai
-
-# NuRops Event Manager
+# NurOps Event Manager
 
 A Helm chart for deploying the Event Manager service, which acts as a webhook bridge for event management in Kubernetes clusters.
 
@@ -57,8 +53,8 @@ The following table lists the configurable parameters of the nurops-event-manage
 | `eventManager.image.pullPolicy` | Container image pull policy | `IfNotPresent` |
 | `eventManager.image.pullSecrets` | Image pull secrets | `[]` |
 | `eventManager.service.type` | Kubernetes service type | `ClusterIP` |
-| `eventManager.service.port` | Service port | `8080` |
-| `eventManager.service.targetPort` | Container target port | `8080` |
+| `eventManager.service.port` | Service port | `80` |
+| `eventManager.service.targetPort` | Container target port | `80` |
 | `eventManager.serviceAccount.create` | Create a service account | `true` |
 | `eventManager.serviceAccount.name` | Service account name | `""` |
 | `eventManager.serviceAccount.annotations` | Service account annotations | `{}` |
@@ -93,7 +89,7 @@ The chart supports the following environment variables:
 
 | Environment Variable | Description | Default |
 |---------------------|-------------|---------|
-| `HTTP_PORT` | HTTP server port | `"8080"` |
+| `HTTP_PORT` | HTTP server port | `"80"` |
 | `DATABASE_PATH` | Path to SQLite database file | `"/data/my-events.db"` |
 | `HISTORY_RETENTION_DAYS` | Number of days to retain event history | `"60"` |
 
@@ -192,7 +188,7 @@ helm uninstall nurops-event-manager
 
 The Event Manager consists of:
 - **Deployment**: Runs the event manager container
-- **Service**: Exposes the event manager on port 8080
+- **Service**: Exposes the event manager on port 80
 - **ServiceAccount**: Provides identity for the pod (optional)
 - **PersistentVolumeClaim**: Provides persistent storage for SQLite3 database
 - **ConfigMap**: Stores configuration data (optional)
@@ -273,12 +269,12 @@ kubectl get svc -l app=nurops-event-manager
 
 ### Port Forward for Testing
 ```bash
-kubectl port-forward svc/nurops-event-manager 8080:8080
+kubectl port-forward svc/nurops-event-manager 80:80
 ```
 
 ### Test the webhook endpoint:
 ```bash
-curl -X POST http://localhost:8080/webhook -H "Content-Type: application/json" -d '{"test": "event"}'
+curl -X POST http://localhost:80/webhook -H "Content-Type: application/json" -d '{"test": "event"}'
 ```
 
 ## K3s Automatic Deployment
@@ -344,12 +340,12 @@ helm install nurops-event-manager . -f custom-values.yaml
 4. Test your changes
 5. Submit a pull request
 
+## Support
+- GitHub Issues: [Create an issue](https://github.com/nurol-ai/helm-charts/issues)
+
 ## License
 
 This project is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
+For commercial use, please contact info@nurol.ai  
 
-## Support
-
-For support, please contact:
-- Email: info@nurol.ai
-- GitHub Issues: [Create an issue](https://github.com/nurol-ai/helm-charts/issues)
+**Copyright (c) 2025 Nurol, Inc. (nurol.ai)**
