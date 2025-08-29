@@ -15,6 +15,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
     paths:
       - 'charts/**'
   pull_request:
@@ -72,7 +74,8 @@ jobs:
   publish:
     needs: lint-and-test
     runs-on: self-hosted
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || \
+        (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))
     env:
       HELM_HOME: /tmp/helm
     steps:
@@ -122,12 +125,27 @@ jobs:
           echo "Chart.yaml files:"
           find charts/ -name "Chart.yaml" -type f
 
+          # Extract version from git tag or use default
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+            echo "Using version from tag: $VERSION"
+          else
+            VERSION="0.1.0"
+            echo "Using default version: $VERSION"
+          fi
+
           mkdir -p pages/charts
 
           for chart in charts/*/; do
             if [ -f "$chart/Chart.yaml" ]; then
-              echo "Packaging $chart"
+              echo "Packaging $chart with version $VERSION"
+              # Temporarily update Chart.yaml version
+              sed -i "s/^version: .*/version: $VERSION/" \
+                "$chart/Chart.yaml"
               helm package "$chart" --destination pages/charts
+              # Restore original version
+              git checkout HEAD -- \
+                "$chart/Chart.yaml"
             else
               echo "No Chart.yaml found in $chart"
             fi
