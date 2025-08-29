@@ -11,7 +11,7 @@ set -e
 
 CHART_NAME="event-manager"
 CHART_DIR="."
-REPO_URL="https://github.com/Nurol-AI/nurol-ai.github.io.git"
+REPO_URL="git@github.com:Nurol-AI/nurol-ai.github.io.git"
 REPO_DIR="/tmp/nurol-ai.github.io"
 PACKAGES_DIR="$REPO_DIR/charts"
 

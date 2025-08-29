@@ -22,7 +22,7 @@ echo "Building $CHART_NAME chart version $VERSION for public repository..."
 # Check if repository directory exists
 if [ ! -d "$REPO_DIR" ]; then
     echo "Error: Repository directory $REPO_DIR not found!"
-    echo "Please clone the repository: git clone https://github.com/Nurol-AI/nurol-ai.github.io.git"
+    echo "Please clone the repository: git clone git://github.com/Nurol-AI/nurol-ai.github.io.git"
     exit 1
 fi
 
