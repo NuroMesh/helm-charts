@@ -23,7 +23,7 @@ The Event Manager service is now running and provides:
 To configure Alertmanager to send alerts to this service, add this to your Alertmanager config:
 
 receivers:
-  - name: 'event-manager'
-    webhook_configs:
-      - url: 'http://{{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local:80/events'
-        send_resolved: true 
+- name: event-manager
+  webhook_configs:
+  - url: http://{{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local:80/events
+    send_resolved: true
