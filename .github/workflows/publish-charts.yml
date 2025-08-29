@@ -37,12 +37,22 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Helm
-        uses: azure/setup-helm@v3
-        with:
-          version: v3.12.0
+        run: |
+          if ! command -v helm &> /dev/null; then
+            echo "Helm not found, installing..."
+            curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          else
+            echo "Helm version: $(helm version --short)"
+          fi
 
       - name: Lint Charts
         run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "Current directory: $(pwd)"
+          echo "Available charts:"
+          ls -la charts/
+
           for chart in charts/*/; do
             if [ -f "$chart/Chart.yaml" ]; then
               echo "Linting $chart"
@@ -71,10 +81,23 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Debug Workflow Trigger
+        run: |
+          echo "Workflow triggered by:"
+          echo "  Event: ${{ github.event_name }}"
+          echo "  Ref: ${{ github.ref }}"
+          echo "  SHA: ${{ github.sha }}"
+          echo "  Actor: ${{ github.actor }}"
+          echo "  Repository: ${{ github.repository }}"
+
       - name: Setup Helm
-        uses: azure/setup-helm@v3
-        with:
-          version: v3.12.0
+        run: |
+          if ! command -v helm &> /dev/null; then
+            echo "Helm not found, installing..."
+            curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          else
+            echo "Helm version: $(helm version --short)"
+          fi
 
       - name: Configure Git
         run: |
@@ -91,14 +114,27 @@ jobs:
 
       - name: Package Charts
         run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "Current directory: $(pwd)"
+          echo "Available charts:"
+          ls -la charts/
+          echo "Chart.yaml files:"
+          find charts/ -name "Chart.yaml" -type f
+
           mkdir -p pages/charts
 
           for chart in charts/*/; do
             if [ -f "$chart/Chart.yaml" ]; then
               echo "Packaging $chart"
               helm package "$chart" --destination pages/charts
+            else
+              echo "No Chart.yaml found in $chart"
             fi
           done
+
+          echo "Packaged charts:"
+          ls -la pages/charts/
 
       - name: Update Index
         run: |
