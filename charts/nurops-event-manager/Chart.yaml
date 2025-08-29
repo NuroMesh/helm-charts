@@ -3,7 +3,7 @@
 # For commercial use, please contact info@nurol.ai
 
 apiVersion: v2
-name: event-manager
+name: nurops-event-manager
 description: A Helm chart for Event Manager service that acts as a webhook bridge for event management
 type: application
 version: 0.1.0

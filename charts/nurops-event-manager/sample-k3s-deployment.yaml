@@ -5,14 +5,14 @@
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
-  name: event-manager
+  name: nurops-event-manager
   namespace: kube-system
   annotations:
-    helm.cattle.io/chart-url: https://nurol-ai.github.io/helm-charts/event-manager-0.1.0.tgz
+    helm.cattle.io/chart-url: https://nurol-ai.github.io/helm-charts/nurops-event-manager-0.1.0.tgz
     helm.cattle.io/chart-version: "0.1.0"
 spec:
   repo: https://nurol-ai.github.io/helm-charts
-  chart: event-manager
+  chart: nurops-event-manager
   version: "0.1.0"
   targetNamespace: monitoring
   valuesContent: |-
@@ -28,7 +28,7 @@ spec:
             cpu: 100m
             memory: 128Mi
       image:
-        repository: nurops/event-manager
+        repository: nurops/nurops-event-manager
         tag: "latest"
         pullPolicy: IfNotPresent
       # Environment variables - matching container implementation
@@ -90,14 +90,14 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - event-manager
+                  - nurops-event-manager
               topologyKey: kubernetes.io/hostname
 ---
 # Alternative: Using HelmChartConfig for more advanced configuration
 apiVersion: helm.cattle.io/v1
 kind: HelmChartConfig
 metadata:
-  name: event-manager-config
+  name: nurops-event-manager-config
   namespace: kube-system
 spec:
   valuesContent: |-
@@ -113,7 +113,7 @@ spec:
       
       # Use specific image version
       image:
-        repository: nurops/event-manager
+        repository: nurops/nurops-event-manager
         tag: "v1.0.0"
       
       # Environment variables for production - matching container implementation
@@ -196,7 +196,7 @@ spec:
       tolerations:
         - key: "dedicated"
           operator: "Equal"
-          value: "event-manager"
+          value: "nurops-event-manager"
           effect: "NoSchedule"
       
       # Pod affinity for high availability
@@ -208,7 +208,7 @@ spec:
               - key: app
                 operator: In
                 values:
-                - event-manager
+                                  - nurops-event-manager
             topologyKey: kubernetes.io/hostname
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -219,5 +219,5 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - event-manager
+                  - nurops-event-manager
               topologyKey: topology.kubernetes.io/zone

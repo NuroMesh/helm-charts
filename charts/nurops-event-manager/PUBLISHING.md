@@ -1,10 +1,10 @@
-# Copyright (c) 2025 Nurol, Inc. (nurol.ai)
-# This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
-# For commercial use, please contact info@nurol.ai
+> **Copyright (c) 2025 Nurol, Inc. (nurol.ai)**  
+> This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).  
+> For commercial use, please contact info@nurol.ai
 
 # Publishing Helm Charts to GitHub Pages
 
-This guide explains how to publish the event-manager Helm chart to GitHub Pages for public use.
+This guide explains how to publish the nurops-event-manager Helm chart to GitHub Pages for public use.
 
 ## Prerequisites
 
@@ -31,7 +31,7 @@ nurol-ai.github.io/
 ├── README.md
 ├── charts/
 │   ├── index.yaml
-│   └── event-manager-0.1.0.tgz
+│   └── nurops-event-manager-0.1.0.tgz
 └── .github/
     └── workflows/
         └── publish.yml (optional)
@@ -43,7 +43,7 @@ nurol-ai.github.io/
 
 ```bash
 # Navigate to the chart directory
-cd nurops/event-manager
+cd charts/nurops-event-manager
 
 # Deploy the chart
 ./scripts/deploy-manual.sh
@@ -65,7 +65,7 @@ cp ../../nurol-ai.github.io/README.md /path/to/your/nurol-ai.github.io/
 # Commit and push
 cd /path/to/your/nurol-ai.github.io
 git add .
-git commit -m "Add event-manager chart v0.2.0"
+git commit -m "Add nurops-event-manager chart v0.2.0"
 git push origin main
 ```
 
@@ -87,16 +87,16 @@ You should see:
 ```yaml
 apiVersion: v1
 entries:
-  event-manager:
+  nurops-event-manager:
   - apiVersion: v2
     appVersion: "1.0.0"
     created: "2025-01-XX..."
     description: A Helm chart for Event Manager service...
     digest: abc123...
-    name: event-manager
+    name: nurops-event-manager
     type: application
     urls:
-    - https://nurol-ai.github.io/charts/event-manager-0.1.0.tgz
+    - https://nurol-ai.github.io/charts/nurops-event-manager-0.1.0.tgz
     version: 0.1.0
 ```
 
@@ -111,15 +111,15 @@ helm repo update
 helm search repo nurol-ai
 
 # Test installation
-helm install test-event-manager nurol-ai/event-manager --dry-run
+helm install test-nurops-event-manager nurol-ai/nurops-event-manager --dry-run
 ```
 
 ### 3. Verify Chart Package
 
 ```bash
 # Download and inspect the package
-curl -O https://nurol-ai.github.io/charts/event-manager-0.1.0.tgz
-tar -tzf event-manager-0.1.0.tgz
+curl -O https://nurol-ai.github.io/charts/nurops-event-manager-0.1.0.tgz
+tar -tzf nurops-event-manager-0.1.0.tgz
 ```
 
 ## Troubleshooting

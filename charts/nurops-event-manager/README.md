@@ -1,8 +1,8 @@
-# Copyright (c) 2025 Nurol, Inc. (nurol.ai)
-# This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
-# For commercial use, please contact info@nurol.ai
+> **Copyright (c) 2025 Nurol, Inc. (nurol.ai)**  
+> This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).  
+> For commercial use, please contact info@nurol.ai
 
-# Event Manager
+# NuRops Event Manager
 
 A Helm chart for deploying the Event Manager service, which acts as a webhook bridge for event management in Kubernetes clusters.
 
@@ -31,18 +31,18 @@ helm repo update
 ### Install the chart
 ```bash
 # Install with default values
-helm install event-manager nurol-ai/event-manager
+helm install nurops-event-manager nurol-ai/nurops-event-manager
 
 # Install in a specific namespace
-helm install event-manager nurol-ai/event-manager --namespace monitoring --create-namespace
+helm install nurops-event-manager nurol-ai/nurops-event-manager --namespace monitoring --create-namespace
 
 # Install with custom values
-helm install event-manager nurol-ai/event-manager -f values.yaml
+helm install nurops-event-manager nurol-ai/nurops-event-manager -f values.yaml
 ```
 
 ## Configuration
 
-The following table lists the configurable parameters of the event-manager chart and their default values.
+The following table lists the configurable parameters of the nurops-event-manager chart and their default values.
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
@@ -52,7 +52,7 @@ The following table lists the configurable parameters of the event-manager chart
 | `eventManager.deployment.resources.limits.memory` | Memory resource limits | `256Mi` |
 | `eventManager.deployment.resources.requests.cpu` | CPU resource requests | `100m` |
 | `eventManager.deployment.resources.requests.memory` | Memory resource requests | `128Mi` |
-| `eventManager.image.repository` | Container image repository | `nurops/event-manager` |
+| `eventManager.image.repository` | Container image repository | `nurops/nurops-event-manager` |
 | `eventManager.image.tag` | Container image tag | `latest` |
 | `eventManager.image.pullPolicy` | Container image pull policy | `IfNotPresent` |
 | `eventManager.image.pullSecrets` | Image pull secrets | `[]` |
@@ -72,7 +72,7 @@ The following table lists the configurable parameters of the event-manager chart
 | `eventManager.persistence.storageClass` | Storage class name | `"longhorn"` |
 | `eventManager.persistence.size` | Storage size | `10Gi` |
 | `eventManager.persistence.accessModes` | Access modes | `["ReadWriteOnce"]` |
-| `eventManager.persistence.mountPath` | Mount path for database | `"/var/lib/event-manager"` |
+| `eventManager.persistence.mountPath` | Mount path for database | `"/var/lib/nurops-event-manager"` |
 | `eventManager.env` | Environment variables for the container | See below |
 | `eventManager.config` | Configuration data for ConfigMap | `{}` |
 | `eventManager.networkPolicy.enabled` | Enable NetworkPolicy | `false` |
@@ -119,7 +119,7 @@ eventManager:
 
 ### Basic Installation
 ```bash
-helm install event-manager nurol-ai/event-manager
+helm install nurops-event-manager nurol-ai/nurops-event-manager
 ```
 
 ### Custom Configuration
@@ -129,7 +129,7 @@ eventManager:
   deployment:
     replicas: 2
   image:
-    repository: your-registry/event-manager
+    repository: your-registry/nurops-event-manager
     tag: v1.0.0
   service:
     type: LoadBalancer
@@ -175,17 +175,17 @@ eventManager:
 
 Install with custom values:
 ```bash
-helm install event-manager nurol-ai/event-manager -f custom-values.yaml
+helm install nurops-event-manager nurol-ai/nurops-event-manager -f custom-values.yaml
 ```
 
 ### Upgrading
 ```bash
-helm upgrade event-manager nurol-ai/event-manager
+helm upgrade nurops-event-manager nurol-ai/nurops-event-manager
 ```
 
 ### Uninstalling
 ```bash
-helm uninstall event-manager
+helm uninstall nurops-event-manager
 ```
 
 ## Architecture
@@ -202,7 +202,7 @@ The Event Manager consists of:
 ## Chart Structure
 
 ```
-event-manager/
+nurops-event-manager/
 ├── Chart.yaml                    # Chart metadata
 ├── values.yaml                   # Default configuration
 ├── README.md                     # Documentation
@@ -224,7 +224,7 @@ event-manager/
 
 The Event Manager uses SQLite3 for data persistence, stored in a Longhorn persistent volume:
 
-- **Database Path**: `/var/lib/event-manager/events.db`
+- **Database Path**: `/var/lib/nurops-event-manager/events.db`
 - **Storage Class**: Longhorn (configurable)
 - **Default Size**: 10Gi (configurable)
 - **Access Mode**: ReadWriteOnce
@@ -240,10 +240,10 @@ The database stores:
 To backup the database:
 ```bash
 # Create a backup job
-kubectl create job backup-event-manager --from=cronjob/backup-job -n monitoring
+kubectl create job backup-nurops-event-manager --from=cronjob/backup-job -n monitoring
 
 # Or manually copy the database
-kubectl cp monitoring/event-manager-pod:/var/lib/event-manager/events.db ./backup-events.db
+kubectl cp monitoring/nurops-event-manager-pod:/var/lib/nurops-event-manager/events.db ./backup-events.db
 ```
 
 ## Monitoring
@@ -258,22 +258,22 @@ The service exposes metrics on the same port as the webhook endpoint. You can mo
 
 ### Check Pod Status
 ```bash
-kubectl get pods -l app=event-manager
+kubectl get pods -l app=nurops-event-manager
 ```
 
 ### View Logs
 ```bash
-kubectl logs -l app=event-manager
+kubectl logs -l app=nurops-event-manager
 ```
 
 ### Check Service
 ```bash
-kubectl get svc -l app=event-manager
+kubectl get svc -l app=nurops-event-manager
 ```
 
 ### Port Forward for Testing
 ```bash
-kubectl port-forward svc/event-manager 8080:8080
+kubectl port-forward svc/nurops-event-manager 8080:8080
 ```
 
 ### Test the webhook endpoint:
@@ -290,7 +290,7 @@ For automatic deployment in k3s, use the provided `sample-k3s-deployment.yaml`:
 kubectl apply -f sample-k3s-deployment.yaml
 ```
 
-This will automatically deploy the event-manager chart with the specified configuration. The chart supports both `HelmChart` and `HelmChartConfig` resources for flexible deployment options.
+This will automatically deploy the nurops-event-manager chart with the specified configuration. The chart supports both `HelmChart` and `HelmChartConfig` resources for flexible deployment options.
 
 ## Development
 
@@ -303,7 +303,7 @@ This will automatically deploy the event-manager chart with the specified config
 helm lint .
 
 # Template with default values
-helm template event-manager .
+helm template nurops-event-manager .
 ```
 
 ### Packaging the Chart
@@ -330,10 +330,10 @@ helm template event-manager .
 ### Local Installation
 ```bash
 # Install directly from local directory
-helm install event-manager .
+helm install nurops-event-manager .
 
 # Install with custom values
-helm install event-manager . -f custom-values.yaml
+helm install nurops-event-manager . -f custom-values.yaml
 ```
 
 ## Contributing

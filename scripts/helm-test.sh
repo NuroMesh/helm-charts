@@ -15,13 +15,13 @@ usage() {
     echo "  -v, --verbose  Enable verbose output"
     echo ""
     echo "Arguments:"
-    echo "  CHART_PATH     Specific chart path to test (e.g., nurops/event-manager)"
+    echo "  CHART_PATH     Specific chart path to test (e.g., charts/nurops-event-manager)"
     echo "                 If not provided, tests all charts in nurops/*/"
     echo ""
     echo "Examples:"
-    echo "  $0                           # Test all charts"
-    echo "  $0 nurops/event-manager      # Test specific chart"
-    echo "  $0 -v nurops/event-manager   # Test with verbose output"
+    echo "  $0                                  # Test all charts"
+    echo "  $0 charts/nurops-event-manager      # Test specific chart"
+    echo "  $0 -v charts/nurops-event-manager   # Test with verbose output"
 }
 
 # Function to test a single chart
@@ -55,10 +55,10 @@ test_all_charts() {
     local verbose="$1"
     local found_charts=false
     
-    echo "Testing all charts in nurops/*/"
+    echo "Testing all charts in charts/*/"
     echo "=================================="
     
-    for chart in nurops/*/; do
+    for chart in charts/*/; do
         if [ -f "$chart/Chart.yaml" ]; then
             found_charts=true
             test_chart "$chart" "$verbose"
@@ -66,7 +66,7 @@ test_all_charts() {
     done
     
     if [ "$found_charts" = "false" ]; then
-        echo "No charts found in nurops/*/"
+        echo "No charts found in charts/*/"
         return 1
     fi
 }

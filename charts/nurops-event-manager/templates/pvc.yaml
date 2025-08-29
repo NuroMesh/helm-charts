@@ -9,12 +9,12 @@ For commercial use, please contact info@nurol.ai
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "event-manager.fullname" . }}-data
+  name: {{ include "nurops-event-manager.fullname" . }}-data
   {{- if .Values.global.namespaceOverride }}
   namespace: {{ .Values.global.namespaceOverride }}
   {{- end }}
   labels:
-    {{- include "event-manager.labels" . | nindent 4 }}
+    {{- include "nurops-event-manager.labels" . | nindent 4 }}
   {{- with .Values.eventManager.persistence.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}

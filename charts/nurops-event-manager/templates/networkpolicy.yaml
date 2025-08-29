@@ -9,16 +9,16 @@ For commercial use, please contact info@nurol.ai
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "event-manager.fullname" . }}
+  name: {{ include "nurops-event-manager.fullname" . }}
   {{- if .Values.global.namespaceOverride }}
   namespace: {{ .Values.global.namespaceOverride }}
   {{- end }}
   labels:
-    {{- include "event-manager.labels" . | nindent 4 }}
+    {{- include "nurops-event-manager.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
-      app: {{ include "event-manager.name" . }}
+      app: {{ include "nurops-event-manager.name" . }}
   policyTypes:
     - Ingress
     - Egress

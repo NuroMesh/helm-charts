@@ -8,23 +8,23 @@ For commercial use, please contact info@nurol.ai
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "event-manager.fullname" . }}
+  name: {{ include "nurops-event-manager.fullname" . }}
   {{- if .Values.global.namespaceOverride }}
   namespace: {{ .Values.global.namespaceOverride }}
   {{- end }}
   labels:
-    app: {{ include "event-manager.name" . }}
-    {{- include "event-manager.labels" . | nindent 4 }}
+    app: {{ include "nurops-event-manager.name" . }}
+{{- include "nurops-event-manager.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.eventManager.deployment.replicas }}
   selector:
     matchLabels:
-      app: {{ include "event-manager.name" . }}
+      app: {{ include "nurops-event-manager.name" . }}
   template:
     metadata:
       labels:
-        app: {{ include "event-manager.name" . }}
-        {{- include "event-manager.labels" . | nindent 8 }}
+        app: {{ include "nurops-event-manager.name" . }}
+        {{- include "nurops-event-manager.labels" . | nindent 8 }}
       {{- with .Values.eventManager.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
@@ -40,9 +40,9 @@ spec:
       - name: {{ .name }}
       {{- end }}
       {{- end }}
-      serviceAccountName: {{ include "event-manager.serviceAccountName" . }}
+      serviceAccountName: {{ include "nurops-event-manager.serviceAccountName" . }}
       containers:
-      - name: {{ include "event-manager.name" . }}
+      - name: {{ include "nurops-event-manager.name" . }}
         image: {{ .Values.eventManager.image.repository }}:{{ .Values.eventManager.image.tag }}
         imagePullPolicy: {{ .Values.eventManager.image.pullPolicy }}
         {{- if .Values.eventManager.env }}
@@ -96,6 +96,6 @@ spec:
       volumes:
       - name: data
         persistentVolumeClaim:
-          claimName: {{ include "event-manager.fullname" . }}-data
+          claimName: {{ include "nurops-event-manager.fullname" . }}-data
       {{- end }}
 {{- end }}

@@ -2,7 +2,7 @@
 # This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
 # For commercial use, please contact info@nurol.ai
 
-# Default values for event-manager
+# Default values for nurops-event-manager
 # This is a YAML-formatted file.
 
 # Global configuration
@@ -28,7 +28,7 @@ eventManager:
   
   # Container image configuration
   image:
-    repository: nurops/event-manager
+    repository: nurops/nurops-event-manager
     tag: "latest"
     pullPolicy: IfNotPresent
     # Optional: specify image pull secrets

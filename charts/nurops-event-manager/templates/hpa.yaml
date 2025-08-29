@@ -9,17 +9,17 @@ For commercial use, please contact info@nurol.ai
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "event-manager.fullname" . }}
+  name: {{ include "nurops-event-manager.fullname" . }}
   {{- if .Values.global.namespaceOverride }}
   namespace: {{ .Values.global.namespaceOverride }}
   {{- end }}
   labels:
-    {{- include "event-manager.labels" . | nindent 4 }}
+    {{- include "nurops-event-manager.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "event-manager.fullname" . }}
+    name: {{ include "nurops-event-manager.fullname" . }}
   minReplicas: {{ .Values.eventManager.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.eventManager.autoscaling.maxReplicas }}
   metrics:
