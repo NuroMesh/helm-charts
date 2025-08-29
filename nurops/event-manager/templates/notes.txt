@@ -1,11 +1,17 @@
+{{/*
+Copyright (c) 2025 Nurol, Inc. (nurol.ai)
+This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
+For commercial use, please contact info@nurol.ai
+*/}}
+
 Thank you for installing {{ .Chart.Name }}.
 
 Your release is named {{ .Release.Name }}.
 
 To learn more about the release, try:
 
-  $ helm status {{ .Release.Name }}
-  $ helm get all {{ .Release.Name }}
+  helm status {{ .Release.Name }}
+  helm get all {{ .Release.Name }}
 
 The Event Manager service is now running and provides:
 
