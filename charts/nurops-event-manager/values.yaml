@@ -2,7 +2,7 @@
 # This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
 # For commercial use, please contact info@nurol.ai
 
-# Default values for nurops-event-manager
+# Default values for NurOps Event Manager
 # This is a YAML-formatted file.
 
 # Global configuration
@@ -11,7 +11,7 @@ global:
   # If not set, will use the release namespace
   namespaceOverride: ""
 
-# Event Manager configuration
+# NurOps Event Manager configuration
 eventManager:
   enabled: true
   

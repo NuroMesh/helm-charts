@@ -1,10 +1,10 @@
 # NurOps Event Manager
 
-A Helm chart for deploying the Event Manager service, which acts as a webhook bridge for event management in Kubernetes clusters.
+A Helm chart for deploying the NurOps Event Manager service, which acts as a webhook bridge for event management in Kubernetes clusters.
 
 ## Overview
 
-The Event Manager service is designed to:
+The NurOps Event Manager service is designed to:
 - Receive webhook notifications from monitoring systems
 - Process and transform event data
 - Forward events to appropriate destinations
@@ -20,20 +20,20 @@ The Event Manager service is designed to:
 
 ### Add the Helm repository
 ```bash
-helm repo add nurol-ai https://nurol-ai.github.io
+helm repo add nurol https://nurol-ai.github.io/charts
 helm repo update
 ```
 
 ### Install the chart
 ```bash
 # Install with default values
-helm install nurops-event-manager nurol-ai/nurops-event-manager
+helm install nurops-event-manager nurol/nurops-event-manager
 
 # Install in a specific namespace
-helm install nurops-event-manager nurol-ai/nurops-event-manager --namespace monitoring --create-namespace
+helm install nurops-event-manager nurol/nurops-event-manager --namespace monitoring --create-namespace
 
 # Install with custom values
-helm install nurops-event-manager nurol-ai/nurops-event-manager -f values.yaml
+helm install nurops-event-manager nurol/nurops-event-manager -f values.yaml
 ```
 
 ## Configuration
@@ -44,8 +44,8 @@ The following table lists the configurable parameters of the nurops-event-manage
 |-----------|-------------|---------|
 | `eventManager.enabled` | Enable or disable the event manager deployment | `true` |
 | `eventManager.deployment.replicas` | Number of replicas to deploy | `1` |
-| `eventManager.deployment.resources.limits.cpu` | CPU resource limits | `200m` |
-| `eventManager.deployment.resources.limits.memory` | Memory resource limits | `256Mi` |
+| `eventManager.deployment.resources.limits.cpu` | CPU resource limits | `500m` |
+| `eventManager.deployment.resources.limits.memory` | Memory resource limits | `512Mi` |
 | `eventManager.deployment.resources.requests.cpu` | CPU resource requests | `100m` |
 | `eventManager.deployment.resources.requests.memory` | Memory resource requests | `128Mi` |
 | `eventManager.image.repository` | Container image repository | `nurops/nurops-event-manager` |
@@ -65,10 +65,10 @@ The following table lists the configurable parameters of the nurops-event-manage
 | `eventManager.tolerations` | Tolerations | `[]` |
 | `eventManager.affinity` | Affinity rules | `{}` |
 | `eventManager.persistence.enabled` | Enable persistent storage | `true` |
-| `eventManager.persistence.storageClass` | Storage class name | `"longhorn"` |
-| `eventManager.persistence.size` | Storage size | `10Gi` |
+| `eventManager.persistence.storageClass` | Storage class name | `"local-path"` |
+| `eventManager.persistence.size` | Storage size | `1Gi` |
 | `eventManager.persistence.accessModes` | Access modes | `["ReadWriteOnce"]` |
-| `eventManager.persistence.mountPath` | Mount path for database | `"/var/lib/nurops-event-manager"` |
+| `eventManager.persistence.mountPath` | Mount path for database | `/data` |
 | `eventManager.env` | Environment variables for the container | See below |
 | `eventManager.config` | Configuration data for ConfigMap | `{}` |
 | `eventManager.networkPolicy.enabled` | Enable NetworkPolicy | `false` |
@@ -90,8 +90,8 @@ The chart supports the following environment variables:
 | Environment Variable | Description | Default |
 |---------------------|-------------|---------|
 | `HTTP_PORT` | HTTP server port | `"80"` |
-| `DATABASE_PATH` | Path to SQLite database file | `"/data/my-events.db"` |
-| `HISTORY_RETENTION_DAYS` | Number of days to retain event history | `"60"` |
+| `DATABASE_PATH` | Path to SQLite database file | `"/data/event_history.db"` |
+| `HISTORY_RETENTION_DAYS` | Number of days to retain event history | `"30"` |
 
 You can customize these by overriding the `eventManager.env` section in your values file:
 
@@ -115,7 +115,7 @@ eventManager:
 
 ### Basic Installation
 ```bash
-helm install nurops-event-manager nurol-ai/nurops-event-manager
+helm install nurops-event-manager nurol/nurops-event-manager
 ```
 
 ### Custom Configuration
@@ -171,12 +171,12 @@ eventManager:
 
 Install with custom values:
 ```bash
-helm install nurops-event-manager nurol-ai/nurops-event-manager -f custom-values.yaml
+helm install nurops-event-manager nurol/nurops-event-manager -f custom-values.yaml
 ```
 
 ### Upgrading
 ```bash
-helm upgrade nurops-event-manager nurol-ai/nurops-event-manager
+helm upgrade nurops-event-manager nurol/nurops-event-manager
 ```
 
 ### Uninstalling
@@ -186,7 +186,7 @@ helm uninstall nurops-event-manager
 
 ## Architecture
 
-The Event Manager consists of:
+The NurOps Event Manager consists of:
 - **Deployment**: Runs the event manager container
 - **Service**: Exposes the event manager on port 80
 - **ServiceAccount**: Provides identity for the pod (optional)
@@ -218,7 +218,7 @@ nurops-event-manager/
 
 ## Data Storage
 
-The Event Manager uses SQLite3 for data persistence, stored in a Longhorn persistent volume:
+The NurOps Event Manager uses SQLite3 for data persistence, stored in a Longhorn persistent volume:
 
 - **Database Path**: `/var/lib/nurops-event-manager/events.db`
 - **Storage Class**: Longhorn (configurable)
@@ -229,7 +229,6 @@ The database stores:
 - Event history and metadata
 - Webhook configurations
 - Processing statistics
-- User preferences and settings
 
 ### Backup and Recovery
 
@@ -239,7 +238,7 @@ To backup the database:
 kubectl create job backup-nurops-event-manager --from=cronjob/backup-job -n monitoring
 
 # Or manually copy the database
-kubectl cp monitoring/nurops-event-manager-pod:/var/lib/nurops-event-manager/events.db ./backup-events.db
+kubectl cp monitoring/nurops-event-manager-pod:/data/event_history.db ./backup-events.db
 ```
 
 ## Monitoring
@@ -341,7 +340,7 @@ helm install nurops-event-manager . -f custom-values.yaml
 5. Submit a pull request
 
 ## Support
-- GitHub Issues: [Create an issue](https://github.com/nurol-ai/helm-charts/issues)
+- GitHub Issues: [Create an issue](https://github.com/Nurol-AI/helm-charts/issues)
 
 ## License
 

@@ -8,10 +8,10 @@ metadata:
   name: nurops-event-manager
   namespace: kube-system
   annotations:
-    helm.cattle.io/chart-url: https://nurol-ai.github.io/helm-charts/nurops-event-manager-0.1.0.tgz
+    helm.cattle.io/chart-url: https://nurol-ai.github.io/charts/nurops-event-manager-0.1.0.tgz
     helm.cattle.io/chart-version: "0.1.0"
 spec:
-  repo: https://nurol-ai.github.io/helm-charts
+  repo: https://nurol-ai.github.io/charts
   chart: nurops-event-manager
   version: "0.1.0"
   targetNamespace: monitoring
@@ -105,7 +105,7 @@ spec:
     global:
       namespaceOverride: "monitoring"
     
-    # Event Manager specific overrides
+    # NurOps Event Manager specific overrides
     eventManager:
       # Enable high availability mode
       deployment:

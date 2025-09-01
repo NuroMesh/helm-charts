@@ -146,28 +146,28 @@ This repository contains Helm charts for Nurol AI applications.
 
 ## Available Charts
 
-- **event-manager**: Event Manager service for webhook management and event processing
+- **nurops-event-manager**: NurOps Event Manager service for webhook management and event processing
 
 ## Usage
 
 ### Add the repository
 ```bash
-helm repo add nurol-ai https://nurol-ai.github.io
+helm repo add nurol https://nurol-ai.github.io
 helm repo update
 ```
 
 ### Install charts
 ```bash
 # Install event-manager
-helm install event-manager nurol-ai/event-manager
+helm install event-manager nurol/nurops-event-manager
 
 # Install with custom values
-helm install event-manager nurol-ai/event-manager -f custom-values.yaml
+helm install event-manager nurol/nurops-event-manager -f custom-values.yaml
 ```
 
 ### List available charts
 ```bash
-helm search repo nurol-ai
+helm search repo nurol
 ```
 
 ## Documentation
@@ -202,6 +202,6 @@ echo "The chart is now available at:"
 echo "  https://nurol-ai.github.io/charts/"
 echo ""
 echo "Users can install with:"
-echo "  helm repo add nurol-ai https://nurol-ai.github.io"
+echo "  helm repo add nurol https://nurol-ai.github.io"
 echo "  helm repo update"
-echo "  helm install $CHART_NAME nurol-ai/$CHART_NAME"
+echo "  helm install $CHART_NAME nurol/$CHART_NAME"

@@ -2,13 +2,13 @@
 > This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).  
 > For commercial use, please contact info@nurol.ai
 
-# Publishing Helm Charts to GitHub Pages
+# Publishing NurOps Event Manager Helm Charts to GitHub Pages
 
-This guide explains how to publish the nurops-event-manager Helm chart to GitHub Pages for public use.
+This guide explains how to publish the NurOps Event Manager Helm chart to GitHub Pages for public use.
 
 ## Prerequisites
 
-1. **GitHub Repository**: You need access to the `Nurol-AI/nurol-ai.github.io` repository
+1. **GitHub Repository**: You need access to the `Nurol-AI/helm-charts` repository
 2. **GitHub Pages**: Ensure GitHub Pages is enabled for the repository
 3. **Helm**: Install Helm 3.x locally
 4. **Git**: Ensure you have git configured with proper credentials
@@ -17,7 +17,7 @@ This guide explains how to publish the nurops-event-manager Helm chart to GitHub
 
 ### 1. Enable GitHub Pages
 
-1. Go to your `nurol-ai.github.io` repository settings
+1. Go to your `Nurol-AI/helm-charts` repository settings
 2. Navigate to "Pages" in the sidebar
 3. Set source to "Deploy from a branch"
 4. Select "main" branch and "/ (root)" folder
@@ -27,7 +27,7 @@ This guide explains how to publish the nurops-event-manager Helm chart to GitHub
 
 The repository should have this structure:
 ```
-nurol-ai.github.io/
+Nurol-AI/helm-charts/
 ├── README.md
 ├── charts/
 │   ├── index.yaml
@@ -59,13 +59,13 @@ cd charts/nurops-event-manager
 ./scripts/build-repo.sh 0.2.0
 
 # Manually copy files to your repository
-cp -r ../../nurol-ai.github.io/charts/* /path/to/your/nurol-ai.github.io/charts/
-cp ../../nurol-ai.github.io/README.md /path/to/your/nurol-ai.github.io/
+cp -r ../../Nurol-AI/helm-charts/charts/* /path/to/your/Nurol-AI/helm-charts/charts/
+cp ../../Nurol-AI/helm-charts/README.md /path/to/your/Nurol-AI/helm-charts/
 
 # Commit and push
-cd /path/to/your/nurol-ai.github.io
+cd /path/to/your/Nurol-AI/helm-charts
 git add .
-git commit -m "Add nurops-event-manager chart v0.2.0"
+git commit -m "Add NurOps Event Manager chart v0.2.0"
 git push origin main
 ```
 
@@ -91,7 +91,7 @@ entries:
   - apiVersion: v2
     appVersion: "1.0.0"
     created: "2025-01-XX..."
-    description: A Helm chart for Event Manager service...
+    description: A Helm chart for NurOps Event Manager service...
     digest: abc123...
     name: nurops-event-manager
     type: application
@@ -191,10 +191,10 @@ git push origin v0.2.0
 
 ## Support
 
-For issues with chart publishing:
+For issues with NurOps Event Manager chart publishing:
 - Check the troubleshooting section above
 - Review GitHub Actions logs if using automated deployment
-- Contact the development team for assistance
+- Create an issue: [GitHub Issues](https://github.com/Nurol-AI/helm-charts/issues)
 
 ## License
 

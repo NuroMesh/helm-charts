@@ -10,7 +10,7 @@ This repository contains carefully crafted Helm charts designed to simplify the 
 ## Available Charts
 
 ### [nurops-event-manager](charts/nurops-event-manager/)
-A robust Event Manager service that acts as a webhook bridge for event management in Kubernetes clusters. Features include:
+A robust event manager service that acts as a webhook bridge for event management in Kubernetes clusters. Features include:
 - Webhook notification processing
 - Event data transformation and routing
 - Centralized event management interface
@@ -52,7 +52,7 @@ A robust Event Manager service that acts as a webhook bridge for event managemen
 ```
 helm-charts/
 ├── charts/                          # Chart directories
-│   └── nurops-event-manager/        # Event Manager chart
+│   └── nurops-event-manager/        # NurOps Event Manager chart
 │       ├── Chart.yaml               # Chart metadata
 │       ├── values.yaml              # Default configuration
 │       ├── README.md                # Chart documentation
