@@ -114,7 +114,7 @@ spec:
       # Use specific image version
       image:
         repository: nurops/nurops-event-manager
-        tag: "v1.0.0"
+        tag: "latest"
       
       # Environment variables for production - matching container implementation
       env:
