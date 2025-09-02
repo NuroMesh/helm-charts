@@ -61,6 +61,12 @@ spec:
         ports:
         - containerPort: {{ .Values.eventManager.service.targetPort }}
           protocol: TCP
+          name: http
+        {{- if .Values.eventManager.service.websocket.enabled }}
+        - containerPort: {{ .Values.eventManager.service.websocket.targetPort }}
+          protocol: TCP
+          name: websocket
+        {{- end }}
         {{- with .Values.eventManager.securityContext }}
         securityContext:
           {{- toYaml . | nindent 10 }}

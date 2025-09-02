@@ -53,8 +53,11 @@ The following table lists the configurable parameters of the nurops-event-manage
 | `eventManager.image.pullPolicy` | Container image pull policy | `IfNotPresent` |
 | `eventManager.image.pullSecrets` | Image pull secrets | `[]` |
 | `eventManager.service.type` | Kubernetes service type | `ClusterIP` |
-| `eventManager.service.port` | Service port | `80` |
-| `eventManager.service.targetPort` | Container target port | `80` |
+| `eventManager.service.port` | HTTP service port | `80` |
+| `eventManager.service.targetPort` | HTTP container target port | `80` |
+| `eventManager.service.websocket.enabled` | Enable WebSocket service port | `true` |
+| `eventManager.service.websocket.port` | WebSocket service port | `8765` |
+| `eventManager.service.websocket.targetPort` | WebSocket container target port | `8765` |
 | `eventManager.serviceAccount.create` | Create a service account | `true` |
 | `eventManager.serviceAccount.name` | Service account name | `""` |
 | `eventManager.serviceAccount.annotations` | Service account annotations | `{}` |
@@ -90,8 +93,12 @@ The chart supports the following environment variables:
 | Environment Variable | Description | Default |
 |---------------------|-------------|---------|
 | `HTTP_PORT` | HTTP server port | `"80"` |
+| `WEBSOCKET_PORT` | WebSocket server port | `"8765"` |
+| `HOST` | Server bind address | `"0.0.0.0"` |
 | `DATABASE_PATH` | Path to SQLite database file | `"/data/event_history.db"` |
 | `HISTORY_RETENTION_DAYS` | Number of days to retain event history | `"30"` |
+| `CLEANUP_INTERVAL_SECONDS` | Cleanup interval in seconds | `"3600"` |
+| `CORS_ORIGINS` | CORS allowed origins | `"*"` |
 
 You can customize these by overriding the `eventManager.env` section in your values file:
 

@@ -42,6 +42,9 @@ eventManager:
       value: "80"
     - name: HOST
       value: "0.0.0.0"
+    # WebSocket server configuration
+    - name: WEBSOCKET_PORT
+      value: "8765"
     # Database configuration
     - name: DATABASE_PATH
       value: "/data/event_history.db"
@@ -59,6 +62,11 @@ eventManager:
     type: ClusterIP
     port: 80
     targetPort: 80
+    # WebSocket service configuration
+    websocket:
+      enabled: true
+      port: 8765
+      targetPort: 8765
   
   # Health check configuration
   livenessProbe:
