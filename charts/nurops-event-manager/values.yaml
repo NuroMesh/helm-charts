@@ -39,7 +39,7 @@ eventManager:
   env:
     # HTTP server configuration
     - name: HTTP_PORT
-      value: "80"
+      value: "8080"
     - name: HOST
       value: "0.0.0.0"
     # WebSocket server configuration
@@ -60,8 +60,8 @@ eventManager:
   # Service configuration
   service:
     type: ClusterIP
-    port: 80
-    targetPort: 80
+    port: 8080
+    targetPort: 8080
     # WebSocket service configuration
     websocket:
       enabled: true
@@ -72,7 +72,7 @@ eventManager:
   livenessProbe:
     httpGet:
       path: /health
-      port: 80
+      port: 8080
     initialDelaySeconds: 30
     periodSeconds: 30
     timeoutSeconds: 10
@@ -81,7 +81,7 @@ eventManager:
   readinessProbe:
     httpGet:
       path: /ready
-      port: 80
+      port: 8080
     initialDelaySeconds: 5
     periodSeconds: 10
     timeoutSeconds: 5
@@ -141,14 +141,14 @@ eventManager:
             name: monitoring
         ports:
           - protocol: TCP
-            port: 80
+            port: 8080
       # Allow traffic from kube-system namespace
       - namespaceSelector:
           matchLabels:
             name: kube-system
         ports:
           - protocol: TCP
-            port: 80
+            port: 8080
     egress:
       # Allow DNS queries
       - ports:

@@ -6,7 +6,7 @@ apiVersion: v2
 name: nurops-event-manager
 description: A Helm chart for NurOps Event Manager service that acts as a webhook bridge for event management
 type: application
-version: 0.1.0
+version: 0.2.0
 appVersion: "1.0.0"
 keywords:
   - event

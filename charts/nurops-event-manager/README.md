@@ -92,7 +92,7 @@ The chart supports the following environment variables:
 
 | Environment Variable | Description | Default |
 |---------------------|-------------|---------|
-| `HTTP_PORT` | HTTP server port | `"80"` |
+| `HTTP_PORT` | HTTP server port | `"8080"` |
 | `WEBSOCKET_PORT` | WebSocket server port | `"8765"` |
 | `HOST` | Server bind address | `"0.0.0.0"` |
 | `DATABASE_PATH` | Path to SQLite database file | `"/data/event_history.db"` |
@@ -106,7 +106,7 @@ You can customize these by overriding the `eventManager.env` section in your val
 eventManager:
   env:
     - name: HTTP_PORT
-      value: "9090"
+      value: "8080"
     - name: DATABASE_PATH
       value: "/data/custom-events.db"
     - name: HISTORY_RETENTION_DAYS
@@ -158,7 +158,7 @@ eventManager:
   # Environment variables
   env:
     - name: HTTP_PORT
-      value: "9090"
+      value: "8080"
     - name: DATABASE_PATH
       value: "/data/production-events.db"
     - name: HISTORY_RETENTION_DAYS
@@ -337,6 +337,17 @@ helm install nurops-event-manager .
 # Install with custom values
 helm install nurops-event-manager . -f custom-values.yaml
 ```
+
+## Changelog
+
+### v0.2.0
+- **BREAKING CHANGE**: Default HTTP port changed from 80 to 8080 for non-root container compatibility
+- Updated health check probes to use correct port (8080 instead of 80)
+- Fixed port consistency across service, health checks, and network policies
+- Enhanced security by using non-privileged ports by default
+
+### v0.1.0
+- Initial release of NurOps Event Manager Helm chart
 
 ## Contributing
 
