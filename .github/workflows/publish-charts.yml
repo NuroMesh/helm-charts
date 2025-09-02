@@ -13,8 +13,6 @@ permissions:
 
 on:
   push:
-    branches:
-      - main
     tags:
       - 'v*'
     paths:
@@ -24,8 +22,6 @@ on:
       - main
     paths:
       - 'charts/**'
-  release:
-    types: [published]
 
 jobs:
   lint-and-test:
@@ -74,7 +70,7 @@ jobs:
   publish:
     needs: lint-and-test
     runs-on: self-hosted
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     env:
       HELM_HOME: /tmp/helm
     steps:
@@ -172,7 +168,7 @@ jobs:
             echo "Creating new index.yaml"
             helm repo index pages/charts --url https://nurol-ai.github.io/charts
           fi
-          
+
           echo "Generated index.yaml:"
           ls -la pages/charts/index.yaml || echo "index.yaml not found"
 
@@ -184,7 +180,7 @@ jobs:
       - name: Commit and Push to Pages Repository
         run: |
           cd pages
-          
+
           echo "Current directory: $(pwd)"
           echo "Repository status:"
           git status
