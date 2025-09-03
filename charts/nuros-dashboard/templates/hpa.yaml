@@ -1,0 +1,42 @@
+{{/*
+Copyright (c) 2025 Nurol, Inc. (nurol.ai)
+This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
+For commercial use, please contact info@nurol.ai
+*/}}
+
+{{- if and .Values.dashboard.enabled .Values.dashboard.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "nuros-dashboard.fullname" . }}
+  {{- if .Values.global.namespaceOverride }}
+  namespace: {{ .Values.global.namespaceOverride }}
+  {{- end }}
+  labels:
+    app: {{ include "nuros-dashboard.name" . }}
+    {{- include "nuros-dashboard.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "nuros-dashboard.fullname" . }}
+  minReplicas: {{ .Values.dashboard.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.dashboard.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.dashboard.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.dashboard.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.dashboard.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.dashboard.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}

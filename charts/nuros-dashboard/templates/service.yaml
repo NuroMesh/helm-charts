@@ -1,0 +1,32 @@
+{{/*
+Copyright (c) 2025 Nurol, Inc. (nurol.ai)
+This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
+For commercial use, please contact info@nurol.ai
+*/}}
+
+{{- if .Values.dashboard.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nuros-dashboard.fullname" . }}
+  {{- if .Values.global.namespaceOverride }}
+  namespace: {{ .Values.global.namespaceOverride }}
+  {{- end }}
+  labels:
+    app: {{ include "nuros-dashboard.name" . }}
+    {{- include "nuros-dashboard.labels" . | nindent 4 }}
+  {{- with .Values.dashboard.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.dashboard.service.type }}
+  ports:
+    - port: {{ .Values.dashboard.service.port }}
+      targetPort: {{ .Values.dashboard.service.targetPort }}
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ include "nuros-dashboard.name" . }}
+    {{- include "nuros-dashboard.selectorLabels" . | nindent 4 }}
+{{- end }}

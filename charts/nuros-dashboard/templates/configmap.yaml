@@ -1,0 +1,20 @@
+{{/*
+Copyright (c) 2025 Nurol, Inc. (nurol.ai)
+This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
+For commercial use, please contact info@nurol.ai
+*/}}
+
+{{- if and .Values.dashboard.enabled .Values.dashboard.configMap.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "nuros-dashboard.configMapName" . }}
+  {{- if .Values.global.namespaceOverride }}
+  namespace: {{ .Values.global.namespaceOverride }}
+  {{- end }}
+  labels:
+    app: {{ include "nuros-dashboard.name" . }}
+    {{- include "nuros-dashboard.labels" . | nindent 4 }}
+data:
+  {{- toYaml .Values.dashboard.configMap.data | nindent 2 }}
+{{- end }}

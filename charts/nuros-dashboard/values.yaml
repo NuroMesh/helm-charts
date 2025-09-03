@@ -1,0 +1,192 @@
+# Copyright (c) 2025 Nurol, Inc. (nurol.ai)
+# This file is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
+# For commercial use, please contact info@nurol.ai
+
+# Default values for NurOS Dashboard
+# This is a YAML-formatted file.
+
+# Global configuration
+global:
+  # Override the namespace where resources are deployed
+  # If not set, will use the release namespace
+  namespaceOverride: ""
+
+# NurOS Dashboard configuration
+dashboard:
+  enabled: true
+  
+  # Deployment configuration
+  deployment:
+    replicas: 1
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+  
+  # Container image configuration
+  image:
+    repository: nuros/dashboard
+    tag: "latest"
+    pullPolicy: IfNotPresent
+    # Optional: specify image pull secrets
+    pullSecrets: []
+    # - name: regcred
+  
+  # Environment variables
+  env:
+    # Next.js configuration
+    - name: NODE_ENV
+      value: "production"
+    - name: PORT
+      value: "3000"
+    - name: HOSTNAME
+      value: "0.0.0.0"
+    # Application configuration
+    - name: NEXT_PUBLIC_APP_NAME
+      value: "NurOS Dashboard"
+    - name: NEXT_PUBLIC_API_URL
+      value: ""
+  
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3000
+    annotations: {}
+  
+  # Ingress configuration
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts:
+      - host: nuros-dashboard.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  
+  # Health check configuration
+  livenessProbe:
+    httpGet:
+      path: /api/health
+      port: 3000
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 3
+
+  readinessProbe:
+    httpGet:
+      path: /api/health
+      port: 3000
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  startupProbe:
+    httpGet:
+      path: /api/health
+      port: 3000
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+  
+  # Service account configuration
+  serviceAccount:
+    create: true
+    name: ""
+    annotations: {}
+  
+  # Pod annotations
+  podAnnotations: {}
+  
+  # Pod security context
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    runAsGroup: 1001
+    fsGroup: 1001
+  
+  # Container security context
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+  
+  # Node selector
+  nodeSelector: {}
+  
+  # Tolerations
+  tolerations: []
+  
+  # Affinity
+  affinity: {}
+  
+  # ConfigMap for additional configuration
+  configMap:
+    enabled: false
+    data: {}
+  
+  # Secret for sensitive data
+  secret:
+    enabled: false
+    data: {}
+  
+  # Pod disruption budget
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+  
+  # Network Policy
+  networkPolicy:
+    enabled: false
+    ingress:
+      # Allow traffic from ingress controllers
+      - namespaceSelector:
+          matchLabels:
+            name: ingress-nginx
+        ports:
+          - protocol: TCP
+            port: 3000
+      # Allow traffic from monitoring namespace
+      - namespaceSelector:
+          matchLabels:
+            name: monitoring
+        ports:
+          - protocol: TCP
+            port: 3000
+    egress:
+      # Allow DNS queries
+      - ports:
+          - protocol: UDP
+            port: 53
+      # Allow HTTP/HTTPS traffic
+      - ports:
+          - protocol: TCP
+            port: 80
+          - protocol: TCP
+            port: 443
+  
+  # Autoscaling configuration
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+
+# Override the name of the chart
+nameOverride: ""
+
+# Override the full name of the chart
+fullnameOverride: ""
