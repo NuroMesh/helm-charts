@@ -18,8 +18,6 @@ This repository contains Helm charts for Nurol AI applications.
 
 - **nurops-event-manager**: Event Manager service for webhook management
   and event processing
-- **nuros-dashboard**: Next.js web application for NurOS management and 
-  monitoring dashboards
 
 ## Usage
 
@@ -34,17 +32,9 @@ helm repo update
 # Install nurops-event-manager
 helm install nurops-event-manager nurol/nurops-event-manager
 
-# Install nuros-dashboard
-helm install nuros-dashboard nurol/nuros-dashboard
-
 # Install with custom values
 helm install nurops-event-manager nurol/nurops-event-manager \
   -f custom-values.yaml
-
-# Install nuros-dashboard with ingress
-helm install nuros-dashboard nurol/nuros-dashboard \
-  --set dashboard.ingress.enabled=true \
-  --set dashboard.ingress.hosts[0].host=dashboard.yourdomain.com
 ```
 
 ### List available charts
