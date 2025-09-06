@@ -22,12 +22,6 @@ spec:
       targetPort: {{ .Values.eventManager.service.targetPort }}
       protocol: TCP
       name: http
-    {{- if .Values.eventManager.service.websocket.enabled }}
-    - port: {{ .Values.eventManager.service.websocket.port }}
-      targetPort: {{ .Values.eventManager.service.websocket.targetPort }}
-      protocol: TCP
-      name: websocket
-    {{- end }}
   selector:
     app: {{ include "nurops-event-manager.name" . }}
 {{- end }}

@@ -53,11 +53,8 @@ The following table lists the configurable parameters of the nurops-event-manage
 | `eventManager.image.pullPolicy` | Container image pull policy | `IfNotPresent` |
 | `eventManager.image.pullSecrets` | Image pull secrets | `[]` |
 | `eventManager.service.type` | Kubernetes service type | `ClusterIP` |
-| `eventManager.service.port` | HTTP service port | `80` |
-| `eventManager.service.targetPort` | HTTP container target port | `80` |
-| `eventManager.service.websocket.enabled` | Enable WebSocket service port | `true` |
-| `eventManager.service.websocket.port` | WebSocket service port | `8765` |
-| `eventManager.service.websocket.targetPort` | WebSocket container target port | `8765` |
+| `eventManager.service.port` | Service port for both HTTP and WebSocket | `8082` |
+| `eventManager.service.targetPort` | Container target port | `8082` |
 | `eventManager.serviceAccount.create` | Create a service account | `true` |
 | `eventManager.serviceAccount.name` | Service account name | `""` |
 | `eventManager.serviceAccount.annotations` | Service account annotations | `{}` |
@@ -92,8 +89,7 @@ The chart supports the following environment variables:
 
 | Environment Variable | Description | Default |
 |---------------------|-------------|---------|
-| `HTTP_PORT` | HTTP server port | `"8080"` |
-| `WEBSOCKET_PORT` | WebSocket server port | `"8765"` |
+| `SERVER_PORT` | Single port for both HTTP and WebSocket connections | `"8082"` |
 | `HOST` | Server bind address | `"0.0.0.0"` |
 | `DATABASE_PATH` | Path to SQLite database file | `"/data/event_history.db"` |
 | `HISTORY_RETENTION_DAYS` | Number of days to retain event history | `"30"` |
@@ -105,8 +101,8 @@ You can customize these by overriding the `eventManager.env` section in your val
 ```yaml
 eventManager:
   env:
-    - name: HTTP_PORT
-      value: "8080"
+    - name: SERVER_PORT
+      value: "8082"
     - name: DATABASE_PATH
       value: "/data/custom-events.db"
     - name: HISTORY_RETENTION_DAYS
@@ -157,8 +153,8 @@ eventManager:
     size: 20Gi
   # Environment variables
   env:
-    - name: HTTP_PORT
-      value: "8080"
+    - name: SERVER_PORT
+      value: "8082"
     - name: DATABASE_PATH
       value: "/data/production-events.db"
     - name: HISTORY_RETENTION_DAYS
@@ -275,12 +271,12 @@ kubectl get svc -l app=nurops-event-manager
 
 ### Port Forward for Testing
 ```bash
-kubectl port-forward svc/nurops-event-manager 80:80
+kubectl port-forward svc/nurops-event-manager 8082:8082
 ```
 
 ### Test the webhook endpoint:
 ```bash
-curl -X POST http://localhost:80/webhook -H "Content-Type: application/json" -d '{"test": "event"}'
+curl -X POST http://localhost:8082/events -H "Content-Type: application/json" -d '{"test": "event"}'
 ```
 
 ## K3s Automatic Deployment

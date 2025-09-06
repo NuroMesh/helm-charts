@@ -37,14 +37,11 @@ eventManager:
   
   # Environment variables - matching the container implementation
   env:
-    # HTTP server configuration
-    - name: HTTP_PORT
-      value: "8080"
+    # Single port for both HTTP and WebSocket connections
+    - name: SERVER_PORT
+      value: "8082"
     - name: HOST
       value: "0.0.0.0"
-    # WebSocket server configuration
-    - name: WEBSOCKET_PORT
-      value: "8765"
     # Database configuration
     - name: DATABASE_PATH
       value: "/data/event_history.db"
@@ -60,19 +57,14 @@ eventManager:
   # Service configuration
   service:
     type: ClusterIP
-    port: 8080
-    targetPort: 8080
-    # WebSocket service configuration
-    websocket:
-      enabled: true
-      port: 8765
-      targetPort: 8765
+    port: 8082
+    targetPort: 8082
   
   # Health check configuration
   livenessProbe:
     httpGet:
       path: /health
-      port: 8080
+      port: 8082
     initialDelaySeconds: 30
     periodSeconds: 30
     timeoutSeconds: 10
@@ -81,7 +73,7 @@ eventManager:
   readinessProbe:
     httpGet:
       path: /ready
-      port: 8080
+      port: 8082
     initialDelaySeconds: 5
     periodSeconds: 10
     timeoutSeconds: 5
@@ -141,14 +133,14 @@ eventManager:
             name: monitoring
         ports:
           - protocol: TCP
-            port: 8080
+            port: 8082
       # Allow traffic from kube-system namespace
       - namespaceSelector:
           matchLabels:
             name: kube-system
         ports:
           - protocol: TCP
-            port: 8080
+            port: 8082
     egress:
       # Allow DNS queries
       - ports:
