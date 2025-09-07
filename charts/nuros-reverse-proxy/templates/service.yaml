@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nuros-reverse-proxy.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "nuros-reverse-proxy.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - name: http
+    protocol: TCP
+    port: {{ .Values.service.port }}
+    targetPort: {{ .Values.service.targetPort }}
+  - name: https
+    protocol: TCP
+    port: {{ .Values.service.httpsPort }}
+    targetPort: {{ .Values.service.httpsPort }}
+  - name: api
+    protocol: TCP
+    port: {{ .Values.service.apiPort }}
+    targetPort: {{ .Values.service.apiPort }}
+  - name: metrics
+    protocol: TCP
+    port: {{ .Values.service.metricsPort }}
+    targetPort: {{ .Values.service.metricsPort }}
+  selector:
+    {{- include "nuros-reverse-proxy.selectorLabels" . | nindent 4 }}

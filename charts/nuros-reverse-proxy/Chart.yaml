@@ -1,0 +1,21 @@
+apiVersion: v2
+name: nuros-reverse-proxy
+description: A Helm chart for NurOS Reverse Proxy with annotation-based service discovery
+type: application
+version: 0.2.0
+appVersion: "1.1.0"
+keywords:
+  - reverse-proxy
+  - ingress
+  - nginx
+  - service-discovery
+  - nuros
+home: https://nurol.ai
+sources:
+  - https://github.com/Nurol-AI/helm-charts
+maintainers:
+  - name: NurOS Team
+    email: info@nurol.ai
+annotations:
+  category: Infrastructure
+  licenses: Creative Commons Attribution-NonCommercial 4.0 International

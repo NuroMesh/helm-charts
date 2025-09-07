@@ -1,0 +1,255 @@
+# Default values for nuros-reverse-proxy.
+
+global:
+  domain: "localhost"
+  vip: "10.1.1.35"
+
+reverseProxy:
+  # Image configuration
+  image:
+    repository: registry.tunnel.xellence.us/nurol/nuros-reverse-proxy
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  
+  # Deployment configuration
+  replicas: 2
+  
+  # Resource configuration
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+      ephemeral-storage: "1Gi"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+      ephemeral-storage: "2Gi"
+  
+  # Environment configuration
+  env:
+    PROXY_ENV: "production"
+    LOG_LEVEL: "info"
+    DISCOVERY_METHOD: "annotations"
+    DISCOVERY_NAMESPACE: ""
+    URL_REGISTRY_CONFIGMAP: "nuros-url-registry"
+    URL_REGISTRY_NAMESPACE: "nuros"
+    SSL_EMAIL: "admin@nurol.ai"
+    SSL_STAGING: "false"
+  
+  # Security context
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 101
+    runAsGroup: 101
+    fsGroup: 101
+  
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+    capabilities:
+      drop:
+        - ALL
+      add:
+        - NET_BIND_SERVICE
+  
+  # Health checks
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8080
+      scheme: HTTP
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    successThreshold: 1
+    failureThreshold: 3
+  
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: 8080
+      scheme: HTTP
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 3
+    successThreshold: 1
+    failureThreshold: 3
+  
+  # Node selection
+  nodeSelector: {}
+  tolerations: []
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+              - nuros-reverse-proxy
+          topologyKey: kubernetes.io/hostname
+
+# Service configuration
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 80
+  httpsPort: 443
+  apiPort: 8080
+  metricsPort: 9090
+  annotations: {}
+
+# ServiceAccount configuration
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# RBAC configuration
+rbac:
+  create: true
+  rules:
+    - apiGroups: [""]
+      resources: ["services"]
+      verbs: ["get", "list", "watch"]
+    - apiGroups: [""]
+      resources: ["namespaces"]
+      verbs: ["get", "list"]
+    - apiGroups: [""]
+      resources: ["configmaps", "secrets"]
+      verbs: ["get", "list", "watch"]
+    - apiGroups: [""]
+      resources: ["pods", "endpoints"]
+      verbs: ["get", "list"]
+
+# Service Discovery Configuration
+serviceDiscovery:
+  # Discovery method: "annotations" or "configmap" or "both"
+  method: "annotations"
+  
+  # Annotation-based discovery
+  annotations:
+    enabled: true
+    # Watch specific namespace (empty = all namespaces)
+    namespace: ""
+    
+  # ConfigMap-based discovery (legacy)
+  configMap:
+    enabled: false
+    configMapName: "nuros-url-registry"
+    namespace: "nuros"
+
+# Storage configuration for certificates and logs
+storage:
+  certs:
+    enabled: true
+    size: 1Gi
+    storageClass: "longhorn"
+    accessModes:
+      - ReadWriteOnce
+  
+  logs:
+    enabled: false
+    size: 5Gi
+    storageClass: "longhorn"
+    accessModes:
+      - ReadWriteOnce
+
+# ConfigMap for proxy configuration
+config:
+  # Global proxy configuration
+  proxy:
+    server:
+      port: 80
+      ssl_port: 443
+      workers: 4
+    ssl:
+      default_provider: letsencrypt
+      providers:
+        letsencrypt:
+          email: "admin@nurol.ai"
+          staging: false
+          account_key_path: /etc/nurops-proxy/certs/letsencrypt/account.key
+          webroot_path: /var/www/html
+          dns_challenge: false
+    authentication:
+      provider: authentik
+      authentik:
+        url: "https://auth.example.com"
+        token: ""
+        verify_ssl: true
+        timeout: 30
+        default_redirect: "https://auth.example.com/if/flow/default-authentication-flow/"
+        logout_redirect: "https://auth.example.com/if/flow/default-authentication-flow/"
+    monitoring:
+      metrics_port: 9090
+      health_port: 8080
+      log_level: info
+
+# Image pull secrets
+imagePullSecrets:
+  - name: xellence-tunnel-registry-secret
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: false
+    namespace: monitoring
+    labels: {}
+    annotations: {}
+
+# Network policy
+networkPolicy:
+  enabled: false
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from: []
+      ports:
+        - protocol: TCP
+          port: 80
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 8080
+  egress:
+    - to: []
+
+# Horizontal Pod Autoscaler
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# Pod Security Policy
+podSecurityPolicy:
+  enabled: false
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+  # maxUnavailable: 1
+
+# Ingress
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: nuros-reverse-proxy.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: nuros-reverse-proxy-tls
+  #    hosts:
+  #      - nuros-reverse-proxy.local

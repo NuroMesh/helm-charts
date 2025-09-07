@@ -14,9 +14,8 @@ permissions:
 on:
   push:
     tags:
-      - 'v*'
-    paths:
-      - 'charts/**'
+      - 'nurops-event-manager-v*'
+      - 'nuros-reverse-proxy-v*'
   pull_request:
     branches:
       - main
@@ -87,6 +86,19 @@ jobs:
           echo "  SHA: ${{ github.sha }}"
           echo "  Actor: ${{ github.actor }}"
           echo "  Repository: ${{ github.repository }}"
+          
+          # Extract chart name and version from tag
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          echo "  Tag: $TAG_NAME"
+          
+          if [[ "$TAG_NAME" =~ ^([a-z-]+)-v(.+)$ ]]; then
+            CHART_NAME="${BASH_REMATCH[1]}"
+            CHART_VERSION="${BASH_REMATCH[2]}"
+            echo "  Parsed Chart: $CHART_NAME"
+            echo "  Parsed Version: $CHART_VERSION"
+          else
+            echo "  ERROR: Tag format not recognized. Expected: chartname-vX.Y.Z"
+          fi
 
       - name: Setup Helm
         run: |
@@ -114,44 +126,47 @@ jobs:
           echo "Current directory: $(pwd)"
           echo "Available charts:"
           ls -la charts/
-          echo "Chart.yaml files:"
-          find charts/ -name "Chart.yaml" -type f
 
-          # Extract version from git tag or use chart version from Chart.yaml
-          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/}
-            echo "Using version from tag: $VERSION"
-            USE_TAG_VERSION=true
+          # Extract chart name and version from tag
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          echo "Processing tag: $TAG_NAME"
+
+          if [[ "$TAG_NAME" =~ ^([a-z-]+)-v(.+)$ ]]; then
+            TARGET_CHART="${BASH_REMATCH[1]}"
+            TARGET_VERSION="${BASH_REMATCH[2]}"
+            echo "Target chart: $TARGET_CHART"
+            echo "Target version: $TARGET_VERSION"
           else
-            echo "No tag found, will use individual chart versions"
-            USE_TAG_VERSION=false
+            echo "ERROR: Tag format not recognized. Expected: chartname-vX.Y.Z"
+            echo "Examples: nurops-event-manager-v0.2.0, nuros-reverse-proxy-v0.2.0"
+            exit 1
+          fi
+
+          # Verify the target chart exists
+          if [ ! -f "charts/$TARGET_CHART/Chart.yaml" ]; then
+            echo "ERROR: Chart 'charts/$TARGET_CHART/Chart.yaml' not found"
+            echo "Available charts:"
+            find charts/ -name "Chart.yaml" -type f
+            exit 1
           fi
 
           mkdir -p pages/charts
 
-          for chart in charts/*/; do
-            if [ -f "$chart/Chart.yaml" ]; then
-              CHART_NAME=$(basename "$chart")
+          echo "Packaging only the target chart: $TARGET_CHART"
+          CHART_DIR="charts/$TARGET_CHART"
+          
+          # Temporarily update Chart.yaml version to match tag
+          echo "Updating $CHART_DIR/Chart.yaml version to $TARGET_VERSION"
+          sed -i "s/^version: .*/version: $TARGET_VERSION/" "$CHART_DIR/Chart.yaml"
+          
+          # Package the specific chart
+          echo "Packaging $CHART_DIR with version $TARGET_VERSION"
+          helm package "$CHART_DIR" --destination pages/charts
+          
+          # Restore original version
+          git checkout HEAD -- "$CHART_DIR/Chart.yaml"
 
-              if [ "$USE_TAG_VERSION" = true ]; then
-                echo "Packaging $chart with tag version $VERSION"
-                # Temporarily update Chart.yaml version
-                sed -i "s/^version: .*/version: $VERSION/" "$chart/Chart.yaml"
-                helm package "$chart" --destination pages/charts
-                # Restore original version
-                git checkout HEAD -- "$chart/Chart.yaml"
-              else
-                # Use the chart's own version
-                CHART_VERSION=$(grep "^version:" "$chart/Chart.yaml" | cut -d' ' -f2)
-                echo "Packaging $chart with chart version $CHART_VERSION"
-                helm package "$chart" --destination pages/charts
-              fi
-            else
-              echo "No Chart.yaml found in $chart"
-            fi
-          done
-
-          echo "Packaged charts:"
+          echo "Successfully packaged chart:"
           ls -la pages/charts/
           echo "Chart package details:"
           for pkg in pages/charts/*.tgz; do
@@ -189,6 +204,13 @@ jobs:
         run: |
           cd pages
 
+          # Extract chart info from tag for commit message
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          if [[ "$TAG_NAME" =~ ^([a-z-]+)-v(.+)$ ]]; then
+            CHART_NAME="${BASH_REMATCH[1]}"
+            CHART_VERSION="${BASH_REMATCH[2]}"
+          fi
+
           echo "Current directory: $(pwd)"
           echo "Repository status:"
           git status
@@ -196,22 +218,26 @@ jobs:
           ls -la
           echo "Files in charts directory:"
           ls -la charts/ || echo "charts directory not found"
-          echo "Git diff:"
-          git diff || echo "No diff"
-          echo "Git diff --cached:"
-          git diff --cached || echo "No staged changes"
 
           # Add all changes (including untracked files)
           git add .
 
-          # Commit with descriptive message
-          git commit -m "Update Helm charts from helm-charts repository
+          # Check if there are any changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
 
-          - Updated chart packages
+          # Commit with descriptive message
+          git commit -m "Release $CHART_NAME v$CHART_VERSION
+
+          - Published $CHART_NAME Helm chart version $CHART_VERSION
           - Updated repository index
           - Updated documentation
 
-          Triggered by: ${{ github.event.head_commit.message }}"
+          Source: ${{ github.repository }}
+          Tag: $TAG_NAME
+          Commit: ${{ github.sha }}"
 
           # Push to main branch using SSH
           git remote set-url origin git@github.com:Nurol-AI/nurol-ai.github.io.git
@@ -219,7 +245,26 @@ jobs:
 
       - name: Verify Deployment
         run: |
-          echo "Helm charts have been successfully published to GitHub Pages"
-          echo "Repository: https://github.com/Nurol-AI/nurol-ai.github.io"
-          echo "Charts available at: https://nurol-ai.github.io/charts/"
-          echo "Index file: https://nurol-ai.github.io/charts/index.yaml"
+          # Extract chart info from tag
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          if [[ "$TAG_NAME" =~ ^([a-z-]+)-v(.+)$ ]]; then
+            CHART_NAME="${BASH_REMATCH[1]}"
+            CHART_VERSION="${BASH_REMATCH[2]}"
+          fi
+
+          echo "✅ Successfully published $CHART_NAME v$CHART_VERSION"
+          echo ""
+          echo "📦 Chart Details:"
+          echo "  Name: $CHART_NAME"
+          echo "  Version: $CHART_VERSION"
+          echo "  Tag: $TAG_NAME"
+          echo ""
+          echo "🌐 Repository URLs:"
+          echo "  Repository: https://github.com/Nurol-AI/nurol-ai.github.io"
+          echo "  Charts: https://nurol-ai.github.io/charts/"
+          echo "  Index: https://nurol-ai.github.io/charts/index.yaml"
+          echo ""
+          echo "📋 Usage:"
+          echo "  helm repo add nurol-charts https://nurol-ai.github.io/charts"
+          echo "  helm repo update"
+          echo "  helm install my-$CHART_NAME nurol-charts/$CHART_NAME --version $CHART_VERSION"

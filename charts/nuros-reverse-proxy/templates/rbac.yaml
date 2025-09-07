@@ -1,0 +1,92 @@
+{{- if .Values.rbac.create }}
+{{- if or (eq .Values.serviceDiscovery.method "annotations") (eq .Values.serviceDiscovery.method "both") }}
+# ClusterRole for annotation-based discovery (needs to watch services across namespaces)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "nuros-reverse-proxy.fullname" . }}
+  labels:
+    {{- include "nuros-reverse-proxy.labels" . | nindent 4 }}
+rules:
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "nuros-reverse-proxy.fullname" . }}
+  labels:
+    {{- include "nuros-reverse-proxy.labels" . | nindent 4 }}
+subjects:
+- kind: ServiceAccount
+  name: {{ include "nuros-reverse-proxy.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ include "nuros-reverse-proxy.fullname" . }}
+  apiGroup: rbac.authorization.k8s.io
+{{- else }}
+# Role for ConfigMap-based discovery (namespace-scoped)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "nuros-reverse-proxy.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "nuros-reverse-proxy.labels" . | nindent 4 }}
+rules:
+{{- toYaml .Values.rbac.rules | nindent 0 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "nuros-reverse-proxy.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "nuros-reverse-proxy.labels" . | nindent 4 }}
+subjects:
+- kind: ServiceAccount
+  name: {{ include "nuros-reverse-proxy.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ include "nuros-reverse-proxy.fullname" . }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+---
+{{- if and .Values.serviceDiscovery.configMap.enabled (or (eq .Values.serviceDiscovery.method "configmap") (eq .Values.serviceDiscovery.method "both")) }}
+# Additional permissions to read URL Registry ConfigMap from target namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "nuros-reverse-proxy.fullname" . }}-url-registry
+  namespace: {{ .Values.serviceDiscovery.configMap.namespace }}
+  labels:
+    {{- include "nuros-reverse-proxy.labels" . | nindent 4 }}
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch"]
+  resourceNames: [{{ .Values.serviceDiscovery.configMap.configMapName | quote }}]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "nuros-reverse-proxy.fullname" . }}-url-registry
+  namespace: {{ .Values.serviceDiscovery.configMap.namespace }}
+  labels:
+    {{- include "nuros-reverse-proxy.labels" . | nindent 4 }}
+subjects:
+- kind: ServiceAccount
+  name: {{ include "nuros-reverse-proxy.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ include "nuros-reverse-proxy.fullname" . }}-url-registry
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+{{- end }}

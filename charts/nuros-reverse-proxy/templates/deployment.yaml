@@ -1,0 +1,117 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "nuros-reverse-proxy.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "nuros-reverse-proxy.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.reverseProxy.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      {{- include "nuros-reverse-proxy.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "nuros-reverse-proxy.selectorLabels" . | nindent 8 }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.service.metricsPort }}"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: {{ include "nuros-reverse-proxy.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.reverseProxy.podSecurityContext | nindent 8 }}
+      containers:
+      - name: nuros-reverse-proxy
+        image: "{{ .Values.reverseProxy.image.repository }}:{{ .Values.reverseProxy.image.tag }}"
+        imagePullPolicy: {{ .Values.reverseProxy.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP
+        - name: https
+          containerPort: 443
+          protocol: TCP
+        - name: api
+          containerPort: 8080
+          protocol: TCP
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+        env:
+        {{- include "nuros-reverse-proxy.envVars" . | nindent 8 }}
+        volumeMounts:
+        - name: config
+          mountPath: /etc/nurops-proxy/config
+          readOnly: true
+        - name: nginx-config
+          mountPath: /etc/nurops-proxy/config/nginx
+        {{- if .Values.storage.certs.enabled }}
+        - name: certs
+          mountPath: /etc/nurops-proxy/certs
+        {{- end }}
+        {{- if .Values.storage.logs.enabled }}
+        - name: logs
+          mountPath: /var/log/nurops-proxy
+        {{- end }}
+        - name: webroot
+          mountPath: /var/www/html
+        - name: tmp
+          mountPath: /tmp
+        livenessProbe:
+          {{- toYaml .Values.reverseProxy.livenessProbe | nindent 10 }}
+        readinessProbe:
+          {{- toYaml .Values.reverseProxy.readinessProbe | nindent 10 }}
+        resources:
+          {{- toYaml .Values.reverseProxy.resources | nindent 10 }}
+        securityContext:
+          {{- toYaml .Values.reverseProxy.securityContext | nindent 10 }}
+      volumes:
+      - name: config
+        configMap:
+          name: {{ include "nuros-reverse-proxy.fullname" . }}-config
+          defaultMode: 0644
+      - name: nginx-config
+        emptyDir: {}
+      {{- if .Values.storage.certs.enabled }}
+      - name: certs
+        persistentVolumeClaim:
+          claimName: {{ include "nuros-reverse-proxy.fullname" . }}-certs
+      {{- else }}
+      - name: certs
+        emptyDir: {}
+      {{- end }}
+      {{- if .Values.storage.logs.enabled }}
+      - name: logs
+        persistentVolumeClaim:
+          claimName: {{ include "nuros-reverse-proxy.fullname" . }}-logs
+      {{- else }}
+      - name: logs
+        emptyDir: {}
+      {{- end }}
+      - name: webroot
+        emptyDir: {}
+      - name: tmp
+        emptyDir: {}
+      {{- with .Values.reverseProxy.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.reverseProxy.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.reverseProxy.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
