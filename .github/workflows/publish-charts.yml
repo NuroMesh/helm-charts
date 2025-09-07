@@ -86,11 +86,11 @@ jobs:
           echo "  SHA: ${{ github.sha }}"
           echo "  Actor: ${{ github.actor }}"
           echo "  Repository: ${{ github.repository }}"
-          
+
           # Extract chart name and version from tag
           TAG_NAME=${GITHUB_REF#refs/tags/}
           echo "  Tag: $TAG_NAME"
-          
+
           if [[ "$TAG_NAME" =~ ^([a-z-]+)-v(.+)$ ]]; then
             CHART_NAME="${BASH_REMATCH[1]}"
             CHART_VERSION="${BASH_REMATCH[2]}"
@@ -154,15 +154,18 @@ jobs:
 
           echo "Packaging only the target chart: $TARGET_CHART"
           CHART_DIR="charts/$TARGET_CHART"
-          
-          # Temporarily update Chart.yaml version to match tag
+
+          # Use the full version with 'v' prefix for the package filename
+          PACKAGE_VERSION="v$TARGET_VERSION"
+
+          # Temporarily update Chart.yaml version to match tag (without 'v' for Chart.yaml)
           echo "Updating $CHART_DIR/Chart.yaml version to $TARGET_VERSION"
           sed -i "s/^version: .*/version: $TARGET_VERSION/" "$CHART_DIR/Chart.yaml"
-          
-          # Package the specific chart
-          echo "Packaging $CHART_DIR with version $TARGET_VERSION"
-          helm package "$CHART_DIR" --destination pages/charts
-          
+
+          # Package the specific chart with version override to include 'v' prefix
+          echo "Packaging $CHART_DIR with version $PACKAGE_VERSION"
+          helm package "$CHART_DIR" --destination pages/charts --version "$PACKAGE_VERSION"
+
           # Restore original version
           git checkout HEAD -- "$CHART_DIR/Chart.yaml"
 
@@ -181,7 +184,7 @@ jobs:
           echo "Current directory: $(pwd)"
           echo "Checking for existing index.yaml:"
           ls -la pages/charts/ || echo "charts directory not found"
-          
+
           if [ -f "pages/charts/index.yaml" ]; then
             echo "Merging with existing index.yaml"
             helm repo index pages/charts \
